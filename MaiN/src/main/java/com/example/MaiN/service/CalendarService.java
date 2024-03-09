@@ -119,55 +119,62 @@ public class CalendarService {
         } else {
             List<Map<String, Object>> list = new ArrayList<>();
             for (Event event : items) {
-                if (event.getSummary() != null && event.getSummary().contains(location)) {
+                if (event.getSummary() != null) {
+                    // 이벤트 요약에서 공백 제거
+                    String summaryWithoutSpaces = event.getSummary().replaceAll("\\s+", "");
+                    // 입력받은 위치에서도 공백 제거
+                    String locationWithoutSpaces = location.replaceAll("\\s+", "");
 
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("summary", event.getSummary());
-                    map.put("start", event.getStart().getDateTime().toString());
-                    map.put("end", event.getEnd().getDateTime().toString());
-                    map.put("eventid", event.getId());
+                    // 공백이 제거된 문자열을 사용하여 포함 관계 검사
+                    if (summaryWithoutSpaces.contains(locationWithoutSpaces)) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("summary", event.getSummary());
+                        map.put("start", event.getStart().getDateTime().toString());
+                        map.put("end", event.getEnd().getDateTime().toString());
+                        map.put("eventid", event.getId());
 
-                    DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
-                    DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
+                        DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
+                        DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
 
-                    // DateTime 객체를 Instant 객체로 변환
-                    Instant startInstant = Instant.ofEpochMilli(startDateTime.getValue());
-                    Instant endInstant = Instant.ofEpochMilli(endDateTime.getValue());
+                        // DateTime 객체를 Instant 객체로 변환
+                        Instant startInstant = Instant.ofEpochMilli(startDateTime.getValue());
+                        Instant endInstant = Instant.ofEpochMilli(endDateTime.getValue());
 
-                    // Instant 객체를 LocalDateTime 객체로 변환
-                    LocalDateTime startLocalDateTime = LocalDateTime.ofInstant(startInstant, ZoneId.of("Asia/Seoul"));
-                    LocalDateTime endLocalDateTime = LocalDateTime.ofInstant(endInstant, ZoneId.of("Asia/Seoul"));
+                        // Instant 객체를 LocalDateTime 객체로 변환
+                        LocalDateTime startLocalDateTime = LocalDateTime.ofInstant(startInstant, ZoneId.of("Asia/Seoul"));
+                        LocalDateTime endLocalDateTime = LocalDateTime.ofInstant(endInstant, ZoneId.of("Asia/Seoul"));
 
-                    // LocalDateTime 객체에서 날짜 부분만 추출하여 LocalDate 객체로 변환
-                    LocalDate eventStartDate = startLocalDateTime.toLocalDate();
-                    LocalDate eventEndDate = endLocalDateTime.toLocalDate();
+                        // LocalDateTime 객체에서 날짜 부분만 추출하여 LocalDate 객체로 변환
+                        LocalDate eventStartDate = startLocalDateTime.toLocalDate();
+                        LocalDate eventEndDate = endLocalDateTime.toLocalDate();
 
-                    //11시 59분
-                    LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
-                    DateTime timeAt1159 = new DateTime(dateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+                        //11시 59분
+                        LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
+                        DateTime timeAt1159 = new DateTime(dateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
 
 
-                    //입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
-                    if(localDate.isEqual(eventStartDate)) {
-                        map.put("start_pixel",calPixel(event.getStart().getDateTime()));
+                        //입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
+                        if (localDate.isEqual(eventStartDate)) {
+                            map.put("start_pixel", calPixel(event.getStart().getDateTime()));
+                        }
+
+                        //입력한 날짜보다 시작 날짜가 빠른 경우 -> start_pixel = 0
+                        else if (localDate.isAfter(eventStartDate)) {
+                            map.put("start_pixel", "0");
+                        }
+
+                        //입력한 날짜와 이벤트 끝 날짜가 같은 경우 ->end pixel 그대로 계산
+                        if (localDate.isEqual(eventEndDate)) {
+                            map.put("end_pixel", calPixel(event.getEnd().getDateTime()));
+                        }
+
+                        //입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
+                        else if (localDate.isBefore(eventEndDate)) {
+                            map.put("end_pixel", calPixel(timeAt1159));
+                        }
+
+                        list.add(map);
                     }
-
-                    //입력한 날짜보다 시작 날짜가 빠른 경우 -> start_pixel = 0
-                    else if(localDate.isAfter(eventStartDate)) {
-                        map.put("start_pixel","0");
-                    }
-
-                    //입력한 날짜와 이벤트 끝 날짜가 같은 경우 ->end pixel 그대로 계산
-                    if(localDate.isEqual(eventEndDate)){
-                        map.put("end_pixel",calPixel(event.getEnd().getDateTime()));
-                    }
-
-                    //입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
-                    else if(localDate.isBefore(eventEndDate)){
-                        map.put("end_pixel",calPixel(timeAt1159));
-                    }
-
-                    list.add(map);
                 }
             }
 
