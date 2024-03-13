@@ -3,6 +3,7 @@ package com.example.MaiN.dto;
 import java.time.LocalDate;
 
 public class AiNotiDto {
+    //ㅇㅇㅇㅇㅇ
     private int id;
     private String title;
     private String link;
