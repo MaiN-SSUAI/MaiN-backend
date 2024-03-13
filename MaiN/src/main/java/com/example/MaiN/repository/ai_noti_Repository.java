@@ -1,5 +1,5 @@
 package com.example.MaiN.repository;
-import com.example.MaiN.model.ai_noti;
+import com.example.MaiN.entity.ai_noti;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 

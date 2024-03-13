@@ -1,6 +1,6 @@
 package com.example.MaiN.dto;
 
-import com.example.MaiN.model.users;
+import com.example.MaiN.entity.users;
 
 public class UserDto {
     private String student_id;

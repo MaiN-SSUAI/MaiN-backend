@@ -1,4 +1,4 @@
-package com.example.MaiN.model;
+package com.example.MaiN.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -10,8 +10,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="ai_noti_favorites")
-public class ai_noti_favorites {
+@Table(name="ssucatch_noti_favorites")
+public class ssucatch_noti_favorites {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id; // 고유한 기본 키
@@ -21,15 +21,15 @@ public class ai_noti_favorites {
     private users studentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ai_noti_id")
-    private ai_noti aiNoti;
+    @JoinColumn(name = "ssucatch_noti_id")
+    private ssucatch_noti ssucatchNoti;
 
     @Builder
-    public ai_noti_favorites(users studentId) {
+    public ssucatch_noti_favorites(users studentId) {
         this.studentId = studentId;
     }
 
-    public void setAiNoti(ai_noti aiNoti) {
-        this.aiNoti = aiNoti;
+    public void setSsucatchNoti(ssucatch_noti ssucatchNoti) {
+        this.ssucatchNoti = ssucatchNoti;
     }
 }
