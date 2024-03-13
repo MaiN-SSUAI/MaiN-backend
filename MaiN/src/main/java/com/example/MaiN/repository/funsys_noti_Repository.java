@@ -1,5 +1,5 @@
 package com.example.MaiN.repository;
-import com.example.MaiN.model.funsys_noti;
+import com.example.MaiN.entity.funsys_noti;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 

@@ -1,5 +1,5 @@
 package com.example.MaiN.repository;
-import com.example.MaiN.model.ssucatch_noti;
+import com.example.MaiN.entity.ssucatch_noti;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 

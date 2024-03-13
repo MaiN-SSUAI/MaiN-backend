@@ -1,9 +1,9 @@
 package com.example.MaiN.service;
 
 import com.example.MaiN.dto.SsucatchNotiDto;
-import com.example.MaiN.model.ssucatch_noti;
-import com.example.MaiN.model.ssucatch_noti_favorites;
-import com.example.MaiN.model.users;
+import com.example.MaiN.entity.ssucatch_noti;
+import com.example.MaiN.entity.ssucatch_noti_favorites;
+import com.example.MaiN.entity.users;
 import com.example.MaiN.repository.ssucatch_noti_favorites_Repository;
 import com.example.MaiN.repository.users_Repository;
 import com.example.MaiN.repository.ssucatch_noti_Repository;
