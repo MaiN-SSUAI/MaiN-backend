@@ -1,9 +1,9 @@
 package com.example.MaiN.service;
 
 import com.example.MaiN.dto.AiNotiDto;
-import com.example.MaiN.model.ai_noti;
-import com.example.MaiN.model.ai_noti_favorites;
-import com.example.MaiN.model.users;
+import com.example.MaiN.entity.ai_noti;
+import com.example.MaiN.entity.ai_noti_favorites;
+import com.example.MaiN.entity.users;
 import com.example.MaiN.repository.ai_noti_favorites_Repository;
 import com.example.MaiN.repository.users_Repository;
 import com.example.MaiN.repository.ai_noti_Repository;

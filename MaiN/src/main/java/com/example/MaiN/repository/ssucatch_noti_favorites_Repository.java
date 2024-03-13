@@ -1,7 +1,7 @@
 package com.example.MaiN.repository;
 
-import com.example.MaiN.model.ssucatch_noti_favorites;
-import com.example.MaiN.model.users;
+import com.example.MaiN.entity.ssucatch_noti_favorites;
+import com.example.MaiN.entity.users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

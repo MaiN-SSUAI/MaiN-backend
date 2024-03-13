@@ -1,4 +1,4 @@
-package com.example.MaiN.model;
+package com.example.MaiN.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -11,8 +11,8 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name="funsys_noti")
-public class funsys_noti {
+@Table(name="ssucatch_noti")
+public class ssucatch_noti {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -22,25 +22,29 @@ public class funsys_noti {
     @Column(length = 15, nullable = false)
     private String link;
 
-    @Column(name = "start_date",nullable = false)
-    private LocalDate startDate;
+    @Column(nullable = false)
+    private String progress;
 
-    @Column(name = "end_date", nullable = false)
-    private LocalDate end_date;
+    @Column(nullable = false)
+    private String category;
+
+    @Column(nullable = false)
+    private LocalDate date;
 
     @Column(nullable = false)
     private boolean favorites;
 
-    @OneToMany(mappedBy = "funsysNoti", fetch = FetchType.EAGER)
-    private Set<funsys_noti_favorites> favoritesSet;
+    @OneToMany(mappedBy = "ssucatchNoti", fetch = FetchType.EAGER)
+    private Set<ssucatch_noti_favorites> favoritesSet;
 
     @Builder
-    public funsys_noti(int id, String title, String link, LocalDate start_date, LocalDate end_date, boolean favorites) {
+    public ssucatch_noti(int id, String title, String link, String progress, String category, LocalDate date, boolean favorites) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
-        this.startDate = startDate;
-        this.end_date = end_date;
+        this.progress = progress;
+        this.category = category;
+        this.date = date;
         this.favorites = favorites;
     }
 }

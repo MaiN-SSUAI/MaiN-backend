@@ -1,5 +1,5 @@
 package com.example.MaiN.repository;
-import com.example.MaiN.model.users;
+import com.example.MaiN.entity.users;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
