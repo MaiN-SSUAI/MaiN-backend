@@ -1,5 +1,10 @@
 package com.example.MaiN.service;
 
+
+import org.springframework.boot.web.error.ErrorAttributeOptions;
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.WebRequest;
 import com.example.MaiN.controller.CalendarController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,17 +26,12 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
-import com.google.auth.oauth2.GoogleCredentials;
-import org.aspectj.apache.bcel.util.ClassPath;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.*;
-import java.security.GeneralSecurityException;
 import java.time.*;
 import java.util.*;
+import java.util.Map;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -42,10 +42,9 @@ public class CalendarService {
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
     private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-//    private static final String SERVICE_ACCOUNT_KEY_PATH = "reservecalendar-410115-141fd088c697.json";
+    //    private static final String SERVICE_ACCOUNT_KEY_PATH = "reservecalendar-410115-141fd088c697.json";
     private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com"; //학부꺼
 //    private static final String CALENDAR_ID = "maintest39@gmail.com"; //테스트 계정 캘린더
-
 
 
     //API사용을 위한 인증 정보를 가져오는 메서드
@@ -69,6 +68,30 @@ public class CalendarService {
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
         return credential;
+    }
+
+    public class CustomException extends RuntimeException {
+        public CustomException(String message) {
+            super(message);
+        }
+
+        // 필요한 경우 추가적인 생성자나 메서드를 정의할 수 있습니다.
+    }
+    @Component
+    public class CustomErrorAttributes extends DefaultErrorAttributes {
+
+        @Override
+        public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options) {
+            Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, options);
+            Throwable error = getError(webRequest);
+
+            // "message" 필드 추가
+            if (error instanceof CustomException) {
+                errorAttributes.put("message", error.getMessage());
+            }
+
+            return errorAttributes;
+        }
     }
 
     //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
@@ -193,6 +216,8 @@ public class CalendarService {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
+        //getCalendarEvents()
+
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
@@ -210,9 +235,14 @@ public class CalendarService {
                 DateTime existingEnd = new DateTime((String) event.get("end"));
                 if (startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()) {
                     // 겹치는 이벤트 발견하면 -> 로그 띄움
-                    throw new Exception("An event at this location and time already exists.");
+                    throw new CustomException("Event Overlaps");
                 }
             }
+        }
+        long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
+        long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
+        if (durationInMillis > twoHoursInMillis) {
+            throw new CustomException("more than 2 hours");
         }
 
         String summary = String.format("%s/%s", location, student_id);
