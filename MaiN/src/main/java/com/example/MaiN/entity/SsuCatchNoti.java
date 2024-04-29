@@ -11,8 +11,8 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name="funsys_noti")
-public class funsys_noti {
+@Table(name="ssucatch_noti")
+public class SsuCatchNoti {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -22,25 +22,25 @@ public class funsys_noti {
     @Column(length = 15, nullable = false)
     private String link;
 
-    @Column(name = "start_date",nullable = false)
-    private LocalDate startDate;
-
-    @Column(name = "end_date", nullable = false)
-    private LocalDate end_date;
+    @Column(nullable = false)
+    private String progress;
 
     @Column(nullable = false)
-    private boolean favorites;
+    private String category;
 
-    @OneToMany(mappedBy = "funsysNoti", fetch = FetchType.EAGER)
-    private Set<funsys_noti_favorites> favoritesSet;
+    @Column(nullable = false)
+    private LocalDate date;
+
+    @OneToMany(mappedBy = "ssuCatchNoti", fetch = FetchType.EAGER)
+    private Set<SsuCatchNotiFavor> favoritesSet;
 
     @Builder
-    public funsys_noti(int id, String title, String link, LocalDate start_date, LocalDate end_date, boolean favorites) {
+    public SsuCatchNoti(int id, String title, String link, String progress, String category, LocalDate date) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
-        this.startDate = startDate;
-        this.end_date = end_date;
-        this.favorites = favorites;
+        this.progress = progress;
+        this.category = category;
+        this.date = date;
     }
 }

@@ -7,14 +7,14 @@ public class FunsysNotiDto {
     private String title;
     private String link;
     private LocalDate startDate;
-    private LocalDate end_date;
+    private LocalDate endDate;
     private boolean favorites;
-    public FunsysNotiDto(int id, String title, String link, LocalDate startDate, LocalDate end_date, boolean favorites) {
+    public FunsysNotiDto(int id, String title, String link, LocalDate startDate, LocalDate endDate, boolean favorites) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
         this.startDate = startDate;
-        this.end_date = end_date;
+        this.endDate = endDate;
         this.favorites = favorites;
     }
 
@@ -30,7 +30,7 @@ public class FunsysNotiDto {
         return link;
     }
     public LocalDate getstartDate() { return startDate; }
-    public LocalDate getend_date() { return end_date; }
+    public LocalDate getendDate() { return endDate; }
     public boolean getFavorites() {
         return favorites;
     }

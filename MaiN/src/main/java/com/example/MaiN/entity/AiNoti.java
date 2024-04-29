@@ -11,8 +11,8 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name="ssucatch_noti")
-public class ssucatch_noti {
+@Table(name="ai_noti")
+public class AiNoti {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -23,28 +23,16 @@ public class ssucatch_noti {
     private String link;
 
     @Column(nullable = false)
-    private String progress;
-
-    @Column(nullable = false)
-    private String category;
-
-    @Column(nullable = false)
     private LocalDate date;
 
-    @Column(nullable = false)
-    private boolean favorites;
-
-    @OneToMany(mappedBy = "ssucatchNoti", fetch = FetchType.EAGER)
-    private Set<ssucatch_noti_favorites> favoritesSet;
+    @OneToMany(mappedBy = "aiNoti", fetch = FetchType.EAGER)
+    private Set<AiNotiFavor> favoritesSet;
 
     @Builder
-    public ssucatch_noti(int id, String title, String link, String progress, String category, LocalDate date, boolean favorites) {
+    public AiNoti(int id, String title, String link, LocalDate date) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
-        this.progress = progress;
-        this.category = category;
         this.date = date;
-        this.favorites = favorites;
     }
 }

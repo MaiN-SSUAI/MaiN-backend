@@ -1,5 +1,6 @@
 package com.example.MaiN.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -11,13 +12,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name="users")
-public class users {
+public class Users {
 
     @Id
-    private String student_id;
+    @Column(name = "student_id")
+    private String studentId;
 
     @Builder
-    public users(String student_id) {
-        this.student_id = student_id;
+    public Users(String studentId) {
+        this.studentId = studentId;
     }
 }
