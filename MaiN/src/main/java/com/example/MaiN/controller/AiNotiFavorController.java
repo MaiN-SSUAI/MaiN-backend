@@ -1,8 +1,8 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.AiNotiDto;
-import com.example.MaiN.entity.ai_noti_favorites;
-import com.example.MaiN.service.AiNotiFavoritesService;
+import com.example.MaiN.entity.AiNotiFavor;
+import com.example.MaiN.service.AiNotiFavorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,25 +11,25 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/ainoti/favorites")
-public class ai_noti_favorites_Controller {
+public class AiNotiFavorController {
 
     @Autowired
-    private AiNotiFavoritesService aiNotiFavoritesService;
+    private AiNotiFavorService aiNotiFavorService;
 
     @PostMapping("/add/{studentId}/{aiNotiId}")
-    public ResponseEntity<ai_noti_favorites> addFavorite(@PathVariable String studentId, @PathVariable int aiNotiId) {
-        ai_noti_favorites favorite = aiNotiFavoritesService.addFavorite(studentId, aiNotiId);
+    public ResponseEntity<AiNotiFavor> addFavorite(@PathVariable String studentId, @PathVariable int aiNotiId) {
+        AiNotiFavor favorite = aiNotiFavorService.addFavorite(studentId, aiNotiId);
         return ResponseEntity.ok(favorite);
     }
     @DeleteMapping("delete/{studentId}/{aiNotiId}")
     public ResponseEntity<?> deleteFavorite(@PathVariable String studentId, @PathVariable int aiNotiId) {
-        aiNotiFavoritesService.deleteFavorite(studentId, aiNotiId);
+        aiNotiFavorService.deleteFavorite(studentId, aiNotiId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/all/{studentId}")
     public ResponseEntity<List<AiNotiDto>> getAiNotiWithFavorites(@PathVariable String studentId) {
-        List<AiNotiDto> aiNotis = aiNotiFavoritesService.getAiNotiWithFavorites(studentId);
-        return ResponseEntity.ok(aiNotis);
+        List<AiNotiDto> aiNotilist = aiNotiFavorService.getAiNotiWithFavorites(studentId);
+        return ResponseEntity.ok(aiNotilist);
     }
 }

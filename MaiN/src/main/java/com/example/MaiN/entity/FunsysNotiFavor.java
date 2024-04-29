@@ -10,26 +10,26 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="ssucatch_noti_favorites")
-public class ssucatch_noti_favorites {
+@Table(name="funsys_noti_favorites")
+public class FunsysNotiFavor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id; // 고유한 기본 키
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", referencedColumnName = "student_id")
-    private users studentId;
+    @JoinColumn(name = "student_id")
+    private Users studentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ssucatch_noti_id")
-    private ssucatch_noti ssucatchNoti;
+    @JoinColumn(name = "funsys_noti_id")
+    private FunsysNoti funsysNoti;
 
     @Builder
-    public ssucatch_noti_favorites(users studentId) {
+    public FunsysNotiFavor(Users studentId) {
         this.studentId = studentId;
     }
 
-    public void setSsucatchNoti(ssucatch_noti ssucatchNoti) {
-        this.ssucatchNoti = ssucatchNoti;
+    public void setFunsysNoti(FunsysNoti funsysNoti) {
+        this.funsysNoti = funsysNoti;
     }
 }
