@@ -1,6 +1,5 @@
 package com.example.MaiN.entity;
 
-import com.example.MaiN.entity.users;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,26 +10,26 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="funsys_noti_favorites")
-public class funsys_noti_favorites {
+@Table(name="ai_noti_favorites")
+public class AiNotiFavor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id; // 고유한 기본 키
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", referencedColumnName = "student_id")
-    private users studentId;
+    private Users studentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "funsys_noti_id")
-    private funsys_noti funsysNoti;
+    @JoinColumn(name = "ai_noti_id")
+    private AiNoti aiNoti;
 
     @Builder
-    public funsys_noti_favorites(users studentId) {
+    public AiNotiFavor(Users studentId) {
         this.studentId = studentId;
     }
 
-    public void setFunsysNoti(funsys_noti funsysNoti) {
-        this.funsysNoti = funsysNoti;
+    public void setAiNoti(AiNoti aiNoti) {
+        this.aiNoti = aiNoti;
     }
 }

@@ -11,8 +11,8 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name="ai_noti")
-public class ai_noti {
+@Table(name="funsys_noti")
+public class FunsysNoti {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -22,21 +22,21 @@ public class ai_noti {
     @Column(length = 15, nullable = false)
     private String link;
 
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(name = "start_date",nullable = false)
+    private LocalDate startDate;
 
-    @Column(nullable = false)
-    private boolean favorites;
+    @Column(name = "end_date", nullable = false)
+    private LocalDate endDate;
 
-    @OneToMany(mappedBy = "aiNoti", fetch = FetchType.EAGER)
-    private Set<ai_noti_favorites> favoritesSet;
+    @OneToMany(mappedBy = "funsysNoti", fetch = FetchType.EAGER)
+    private Set<FunsysNotiFavor> favoritesSet;
 
     @Builder
-    public ai_noti(int id, String title, String link, LocalDate date, boolean favorites) {
+    public FunsysNoti(int id, String title, String link, LocalDate startDate, LocalDate endDate) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
-        this.date = date;
-        this.favorites = favorites;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 }

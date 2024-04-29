@@ -2,7 +2,7 @@ package com.example.MaiN.dto;
 
 import java.time.LocalDate;
 
-public class SsucatchNotiDto {
+public class SsuCatchNotiDto {
     private int id;
     private String title;
     private String link;
@@ -10,7 +10,7 @@ public class SsucatchNotiDto {
     private String category;
     private LocalDate date;
     private boolean favorites;
-    public SsucatchNotiDto(int id, String title, String link, String progress, String category, LocalDate date, boolean favorites) {
+    public SsuCatchNotiDto(int id, String title, String link, String progress, String category, LocalDate date, boolean favorites) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
