@@ -14,7 +14,6 @@ public class EventDto {
     private String studentId;
     private String startDateTimeStr;
     private String endDateTimeStr;
-
     @Setter
     private String eventId;
 

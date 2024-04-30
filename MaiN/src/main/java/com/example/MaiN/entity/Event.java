@@ -27,7 +27,7 @@ public class Event {
     @Column(name = "end_time")
     private String endTime;
 
-    @Column(name = "eventid")
+    @Column(name = "event_id")
     private String eventId;
 
     public void patch(Event event) {
