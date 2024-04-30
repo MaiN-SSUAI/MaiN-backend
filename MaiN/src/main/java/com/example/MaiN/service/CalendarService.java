@@ -1,6 +1,8 @@
 package com.example.MaiN.service;
 
 
+import com.example.MaiN.repository.ReservRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.Map;
 import java.time.format.DateTimeFormatter;
@@ -45,7 +48,8 @@ public class CalendarService {
     //    private static final String SERVICE_ACCOUNT_KEY_PATH = "reservecalendar-410115-141fd088c697.json";
     private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com"; //학부꺼
 //    private static final String CALENDAR_ID = "maintest39@gmail.com"; //테스트 계정 캘린더
-
+    @Autowired
+    private ReservRepository reservRepository;
 
     //API사용을 위한 인증 정보를 가져오는 메서드
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
@@ -218,9 +222,25 @@ public class CalendarService {
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
+        // 예약 날짜 파싱
+        LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
+        LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
+
         // 기존 이벤트와의 충돌을 확인
         String date = startDateTime.toStringRfc3339().split("T")[0];
         String existingEventsJson = getCalendarEvents(date, location);
+
+        // 해당 주의 시작과 끝 날짜 계산
+        LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
+        LocalDate startOfWeek = targetDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = targetDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+        // 현재 날짜 기준으로 예약 가능 기간 설정
+        LocalDate today = LocalDate.now();
+        LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+
+        List<com.example.MaiN.entity.Event> reservations = reservRepository.findByStudentId(studentId);
 
         // existingEventsJson로 겹치는 이벤트 있는지 확인
         if (!existingEventsJson.equals("No Upcoming events found")) {
@@ -231,15 +251,37 @@ public class CalendarService {
                 DateTime existingStart = new DateTime((String) event.get("start"));
                 DateTime existingEnd = new DateTime((String) event.get("end"));
                 if (startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()) {
+                    // 겹치는 이벤트 발견하면 -> 로그 띄움
                     throw new CustomException("Event Overlaps");
                 }
             }
         }
+
+        //2시간 이상인지 체크
         long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
         long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
         if (durationInMillis > twoHoursInMillis) {
-            throw new CustomException("more than 2 hours");
+            throw new CustomException("More than 2 hours");
         }
+
+        // 해당 주에 해당하는 예약만 필터링
+        long countThisWeek = reservations.stream()
+                .filter(r -> {
+                    LocalDate reservationDate = LocalDate.parse(r.getStartTime().split("T")[0], DateTimeFormatter.ISO_DATE);
+                    return !reservationDate.isBefore(startOfWeek) && !reservationDate.isAfter(endOfWeek);
+                })
+                .count();
+
+        if (countThisWeek >= 2) {
+            throw new CustomException("More than 2 appointments a week");
+        }
+
+        // 예약 가능 기간 외 예약 차단 로직
+        if (startDate.isBefore(startOfThisMonth) || endDate.isAfter(endOfNextMonth)) {
+            throw new CustomException("Reservation can only be made for this month and the next month");
+        }
+
+        System.out.println("Total reservations for student ID " + studentId + " from " + startOfWeek + " to " + endOfWeek + ": " + countThisWeek);
 
         String summary = String.format("%s/%s", location, studentId);
         Event event = new Event().setSummary(summary);
@@ -257,6 +299,7 @@ public class CalendarService {
         event = service.events().insert(CALENDAR_ID, event).execute();
         return event.getId();
     }
+
 
 
 
