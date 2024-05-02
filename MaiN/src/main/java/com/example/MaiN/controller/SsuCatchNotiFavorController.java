@@ -3,6 +3,8 @@ package com.example.MaiN.controller;
 import com.example.MaiN.dto.SsuCatchNotiDto;
 import com.example.MaiN.entity.SsuCatchNotiFavor;
 import com.example.MaiN.service.SsuCatchNotiFavorService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@Tag(name="SsucatchNoti-Favorite-Controller",description = "슈캐치 북마크 관련 API")
 @RequestMapping("/ssucatchnoti/favorites")
 public class SsuCatchNotiFavorController {
 
@@ -17,17 +20,20 @@ public class SsuCatchNotiFavorController {
     private SsuCatchNotiFavorService ssuCatchNotiFavorService;
 
     @PostMapping("/add/{studentId}/{ssuCatchNotiId}")
+    @Operation(summary = "슈캐치 북마크 추가")
     public ResponseEntity<SsuCatchNotiFavor> addFavorite(@PathVariable String studentId, @PathVariable int ssuCatchNotiId) {
         SsuCatchNotiFavor favorite = ssuCatchNotiFavorService.addFavorite(studentId, ssuCatchNotiId);
         return ResponseEntity.ok(favorite);
     }
     @DeleteMapping("delete/{studentId}/{ssuCatchNotiId}")
+    @Operation(summary = "슈캐치 북마크 삭제")
     public ResponseEntity<?> deleteFavorite(@PathVariable String studentId, @PathVariable int ssuCatchNotiId) {
         ssuCatchNotiFavorService.deleteFavorite(studentId, ssuCatchNotiId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/all/{studentId}")
+    @Operation(summary = "모든 북마크 보기")
     public ResponseEntity<List<SsuCatchNotiDto>> getSsuCatchNotiWithFavorites(@PathVariable String studentId) {
         List<SsuCatchNotiDto> ssuCatchNotilist = ssuCatchNotiFavorService.getSsuCatchNotiWithFavorites(studentId);
         return ResponseEntity.ok(ssuCatchNotilist);
