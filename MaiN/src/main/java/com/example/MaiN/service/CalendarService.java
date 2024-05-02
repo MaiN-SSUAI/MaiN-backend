@@ -1,10 +1,13 @@
 package com.example.MaiN.service;
 
 
+import com.example.MaiN.dto.EventDto;
 import com.example.MaiN.repository.ReservRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 import com.example.MaiN.controller.CalendarController;
@@ -47,7 +50,7 @@ public class CalendarService {
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
     //    private static final String SERVICE_ACCOUNT_KEY_PATH = "reservecalendar-410115-141fd088c697.json";
     private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com"; //학부꺼
-//    private static final String CALENDAR_ID = "maintest39@gmail.com"; //테스트 계정 캘린더
+    //    private static final String CALENDAR_ID = "maintest39@gmail.com"; //테스트 계정 캘린더
     @Autowired
     private ReservRepository reservRepository;
 
@@ -116,18 +119,59 @@ public class CalendarService {
         return Integer.toString(result);
     }
 
+    public Map<String, Object> toMap(List items, Event event, LocalDate date) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("summary", event.getSummary());
+        map.put("start", event.getStart().getDateTime().toString());
+        map.put("end", event.getEnd().getDateTime().toString());
+        map.put("eventId", event.getId());
+
+        DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
+        DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
+
+        // DateTime 객체를 Instant 객체로 변환
+        Instant startInstant = Instant.ofEpochMilli(startDateTime.getValue());
+        Instant endInstant = Instant.ofEpochMilli(endDateTime.getValue());
+
+        // Instant 객체를 LocalDateTime 객체로 변환
+        LocalDateTime startLocalDateTime = LocalDateTime.ofInstant(startInstant, ZoneId.of("Asia/Seoul"));
+        LocalDateTime endLocalDateTime = LocalDateTime.ofInstant(endInstant, ZoneId.of("Asia/Seoul"));
+
+        // LocalDateTime 객체에서 날짜 부분만 추출하여 LocalDate 객체로 변환
+        LocalDate eventStartDate = startLocalDateTime.toLocalDate();
+        LocalDate eventEndDate = endLocalDateTime.toLocalDate();
+
+        //11시 59분
+        LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
+        DateTime timeAt1159 = new DateTime(dateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+
+        //입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
+        if (date.isEqual(eventStartDate)) {
+            map.put("start_pixel", calPixel(event.getStart().getDateTime()));
+        }
+        //입력한 날짜보다 시작 날짜가 빠른 경우 -> start_pixel = 0
+        else if (date.isAfter(eventStartDate)) {
+            map.put("start_pixel", "0");
+        }
+        //입력한 날짜와 이벤트 끝 날짜가 같은 경우 ->end pixel 그대로 계산
+        if (date.isEqual(eventEndDate)) {
+            map.put("end_pixel", calPixel(event.getEnd().getDateTime()));
+        }
+        //입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
+        else if (date.isBefore(eventEndDate)) {
+            map.put("end_pixel", calPixel(timeAt1159));
+        }
+        return map;
+    }
+
     //GET
-    public String getCalendarEvents(String date, String location) throws Exception {
+    public ResponseEntity<?> getCalendarEvents(LocalDate date, String location) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
-        //입력받은 날짜를 local date 형식으로 변환
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate localDate = LocalDate.parse(date, formatter);
-
         // 입력받은 날짜를 이용해 그 날의 시작 시간과 끝 시간을 DateTime 형식으로 변환
-        DateTime startOfDay = new DateTime(localDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-        DateTime endOfDay = new DateTime(localDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        DateTime startOfDay = new DateTime(date.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        DateTime endOfDay = new DateTime(date.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
 
         // 캘린더에서 날짜 범위에 해당하는 이벤트들을 가져옴
         Events events = service.events().list(CALENDAR_ID)
@@ -136,82 +180,36 @@ public class CalendarService {
                 .setOrderBy("startTime")
                 .setSingleEvents(true)
                 .execute();
-
         //가져온 이벤트들을 리스트에 저장
-        List<Event> items = events.getItems();
+        List<Event> eventsList = events.getItems();
 
-        if (items.isEmpty()) {
-            return "No Upcoming events found";
+        if (eventsList.isEmpty()) {
+            return ResponseEntity.badRequest().body("No Upcoming events found");
         } else {
-            List<Map<String, Object>> list = new ArrayList<>();
-            for (Event event : items) {
+            List<Map<String, Object>> eventsMapList = new ArrayList<>();
+            for (Event event : eventsList) {
                 if (event.getSummary() != null) {
                     // 이벤트 요약에서 공백 제거
                     String summaryWithoutSpaces = event.getSummary().replaceAll("\\s+", "");
-                    // 입력받은 위치에서도 공백 제거
+                    // 입력받은 위치에서 공백 제거
                     String locationWithoutSpaces = location.replaceAll("\\s+", "");
 
                     // 공백이 제거된 문자열을 사용하여 포함 관계 검사
                     if (summaryWithoutSpaces.contains(locationWithoutSpaces)) {
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("summary", event.getSummary());
-                        map.put("start", event.getStart().getDateTime().toString());
-                        map.put("end", event.getEnd().getDateTime().toString());
-                        map.put("eventId", event.getId());
-
-                        DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
-                        DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
-
-                        // DateTime 객체를 Instant 객체로 변환
-                        Instant startInstant = Instant.ofEpochMilli(startDateTime.getValue());
-                        Instant endInstant = Instant.ofEpochMilli(endDateTime.getValue());
-
-                        // Instant 객체를 LocalDateTime 객체로 변환
-                        LocalDateTime startLocalDateTime = LocalDateTime.ofInstant(startInstant, ZoneId.of("Asia/Seoul"));
-                        LocalDateTime endLocalDateTime = LocalDateTime.ofInstant(endInstant, ZoneId.of("Asia/Seoul"));
-
-                        // LocalDateTime 객체에서 날짜 부분만 추출하여 LocalDate 객체로 변환
-                        LocalDate eventStartDate = startLocalDateTime.toLocalDate();
-                        LocalDate eventEndDate = endLocalDateTime.toLocalDate();
-
-                        //11시 59분
-                        LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
-                        DateTime timeAt1159 = new DateTime(dateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-
-
-                        //입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
-                        if (localDate.isEqual(eventStartDate)) {
-                            map.put("start_pixel", calPixel(event.getStart().getDateTime()));
-                        }
-
-                        //입력한 날짜보다 시작 날짜가 빠른 경우 -> start_pixel = 0
-                        else if (localDate.isAfter(eventStartDate)) {
-                            map.put("start_pixel", "0");
-                        }
-
-                        //입력한 날짜와 이벤트 끝 날짜가 같은 경우 ->end pixel 그대로 계산
-                        if (localDate.isEqual(eventEndDate)) {
-                            map.put("end_pixel", calPixel(event.getEnd().getDateTime()));
-                        }
-
-                        //입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
-                        else if (localDate.isBefore(eventEndDate)) {
-                            map.put("end_pixel", calPixel(timeAt1159));
-                        }
-
-                        list.add(map);
+                        eventsMapList.add(toMap(eventsList, event, date));
                     }
                 }
             }
 
-            ObjectMapper objectMapper = new ObjectMapper();
+            /*ObjectMapper objectMapper = new ObjectMapper();
             String jsonString = "";
             try {
-                jsonString = objectMapper.writeValueAsString(list);
+                jsonString = objectMapper.writeValueAsString(eventsMapList);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
-            }
-            return jsonString;
+            }*/
+            //return jsonString;
+            return ResponseEntity.ok(eventsMapList);
         }
     }
 
@@ -228,7 +226,15 @@ public class CalendarService {
 
         // 기존 이벤트와의 충돌을 확인
         String date = startDateTime.toStringRfc3339().split("T")[0];
-        String existingEventsJson = getCalendarEvents(date, location);
+        ResponseEntity<?> response = getCalendarEvents(startDate, location);
+        List<Map<String, Object>> existingEventsJson = new ArrayList<>();
+        if (response.getBody() instanceof List<?>) {
+            List<?> rawList = (List<?>) response.getBody();
+            if (!rawList.isEmpty() && rawList.get(0) instanceof Map) {
+                existingEventsJson = (List<Map<String, Object>>) rawList; // 값을 재할당
+            }
+        }
+
 
         // 해당 주의 시작과 끝 날짜 계산
         LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
@@ -245,9 +251,9 @@ public class CalendarService {
         // existingEventsJson로 겹치는 이벤트 있는지 확인
         if (!existingEventsJson.equals("No Upcoming events found")) {
             ObjectMapper objectMapper = new ObjectMapper();
-            List<Map<String, Object>> existingEvents = objectMapper.readValue(existingEventsJson, new TypeReference<List<Map<String, Object>>>(){});
+            //List<Map<String, Object>> existingEvents = objectMapper.readValue(existingEventsJson, new TypeReference<List<Map<String, Object>>>(){});
 
-            for (Map<String, Object> event : existingEvents) {
+            for (Map<String, Object> event : existingEventsJson) {
                 DateTime existingStart = new DateTime((String) event.get("start"));
                 DateTime existingEnd = new DateTime((String) event.get("end"));
                 if (startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()) {
@@ -302,7 +308,6 @@ public class CalendarService {
 
 
 
-
     public String deleteCalendarEvents(String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
@@ -335,3 +340,4 @@ public class CalendarService {
         return updatedEvent.getId();
     }
 }
+
