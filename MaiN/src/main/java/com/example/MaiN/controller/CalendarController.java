@@ -8,10 +8,12 @@ import com.example.MaiN.repository.ReservRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 
 @RestController
 @Tag(name="Calendar-Controller",description = "세미나실 예약 관련 API")
@@ -28,9 +30,9 @@ public class CalendarController {
     }
 
     //특정 날짜 일정 보기
-    @GetMapping("/show_event")
+    @GetMapping("/events")
     @Operation(summary = "모든 예약 불러오기")
-    public String getCalendarEvents(@RequestParam(name="date") String date, @RequestParam(name="location") String location) throws Exception {
+    public ResponseEntity<?> getCalendarEvents(@RequestParam(name="date") LocalDate date, @RequestParam(name="location") String location) throws Exception {
         return calendarService.getCalendarEvents(date,location);
     }
     //일정 추가
