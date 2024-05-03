@@ -80,8 +80,6 @@ public class CalendarService {
         public CustomException(String message) {
             super(message);
         }
-
-        // 필요한 경우 추가적인 생성자나 메서드를 정의할 수 있습니다.
     }
     @Component
     public class CustomErrorAttributes extends DefaultErrorAttributes {
@@ -228,14 +226,16 @@ public class CalendarService {
         String date = startDateTime.toStringRfc3339().split("T")[0];
         ResponseEntity<?> response = getCalendarEvents(startDate, location);
         List<Map<String, Object>> existingEventsJson = new ArrayList<>();
+
         if (response.getBody() instanceof List<?>) {
             List<?> rawList = (List<?>) response.getBody();
             if (!rawList.isEmpty() && rawList.get(0) instanceof Map) {
-                existingEventsJson = (List<Map<String, Object>>) rawList; // 값을 재할당
+                // 올바른 위치에 @SuppressWarnings 어노테이션 적용
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> castedList = (List<Map<String, Object>>) rawList;
+                existingEventsJson = castedList; // 값을 재할당
             }
         }
-
-
         // 해당 주의 시작과 끝 날짜 계산
         LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
         LocalDate startOfWeek = targetDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
