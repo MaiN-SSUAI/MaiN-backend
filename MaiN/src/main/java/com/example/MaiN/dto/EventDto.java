@@ -6,12 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 public class EventDto {
     private String location;
-    private String studentId;
+    private List<String> studentIds;
     private String startDateTimeStr;
     private String endDateTimeStr;
     @Setter
@@ -22,7 +24,7 @@ public class EventDto {
     public Event toEntity(){
         return Event.builder()
                 .location(location)
-                .studentId(studentId)
+                .studentIds(studentIds)
                 .startTime(startDateTimeStr)
                 .endTime(endDateTimeStr)
                 .eventId(eventId)
