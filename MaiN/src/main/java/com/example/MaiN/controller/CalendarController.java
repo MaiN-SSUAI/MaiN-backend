@@ -1,6 +1,7 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.EventDto;
+import com.example.MaiN.dto.UsersDto;
 import com.example.MaiN.entity.Event;
 import com.example.MaiN.service.CalendarService;
 import com.example.MaiN.repository.ReservRepository;
@@ -8,12 +9,15 @@ import com.example.MaiN.repository.ReservRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @Tag(name="Calendar-Controller",description = "세미나실 예약 관련 API")
@@ -35,11 +39,17 @@ public class CalendarController {
     public ResponseEntity<?> getCalendarEvents(@RequestParam(name="date") LocalDate date, @RequestParam(name="location") String location) throws Exception {
         return calendarService.getCalendarEvents(date,location);
     }
+
+    @PostMapping("/check/user")
+    @Operation(summary = "세미나실 사용자 등록")
+    public ResponseEntity<?> addUsers(@RequestBody UsersDto usersDto, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        return calendarService.checkUser(usersDto, date);
+    }
     //일정 추가
-    @PostMapping("/add")
+    @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
-        String eventId = calendarService.addEvent(eventDto.getLocation(), eventDto.getStudentId(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+        String eventId = calendarService.addEvent(eventDto.getLocation(), Collections.singletonList(eventDto.getStudentId()), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
         eventDto.setEventId(eventId);
         Event event = eventDto.toEntity(); //dto를 entity로 변환
         Event saved = reservRepository.save(event); //repository를 이용하여 entity를 db에 저장
@@ -65,7 +75,7 @@ public class CalendarController {
         Event target = reservRepository.findByEventId(eventId); //타깃 조회
         target.patch(event);
         Event updated = reservRepository.save(target);
-        return calendarService.updateCalendarEvents(eventDto.getLocation(), eventDto.getStudentId(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(),eventId);
+        return calendarService.updateCalendarEvents(eventDto.getLocation(), Collections.singletonList(eventDto.getStudentId()), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(),eventId);
 
     }
 
