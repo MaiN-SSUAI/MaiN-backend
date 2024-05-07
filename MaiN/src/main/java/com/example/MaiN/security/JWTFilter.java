@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -37,17 +38,16 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //Access token 가져오기
         try {
-            Optional<String> accessToken = getAccessToken(request); //request header 에서 토큰 가져오기
+            String accessToken = getAccessToken(request);
 
-            //access token 이 존재하지 않는 경우 예외 발생
-            if(accessToken.isEmpty()) {
+            if(accessToken == null) {
                 throw new Exception("no token provided");
             }
 
             //access token 유효성 검증
-            if(jwtProvider.validateToken(String.valueOf(accessToken))) {
+            if(jwtProvider.validateToken(accessToken)) {
                 //해당 토큰의 Authentication 을 가져와 SecurityContext 에 저장
-                Authentication authentication = jwtProvider.getAuthentication(String.valueOf(accessToken));
+                Authentication authentication = jwtProvider.getAuthentication(accessToken);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
@@ -58,15 +58,11 @@ public class JWTFilter extends OncePerRequestFilter {
         filterChain.doFilter(request,response);
     }
 
-    //request header 에서 Access Token 추출하기
-    private Optional<String> getAccessToken(@NotNull  HttpServletRequest request){
-        Optional<String> token = Optional.ofNullable(request.getHeader(AUTHORIZATION_HEADER));
-
-        if(token.isPresent() && token.get().startsWith(PREFIX)) {
-            return Optional.of(token.get().substring(PREFIX.length()));
+    private String getAccessToken(@NotNull HttpServletRequest request){
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(PREFIX)){
+            return bearerToken.split(" ")[1].trim();
         }
-
-        return Optional.empty();
-
+        return null;
     }
 }

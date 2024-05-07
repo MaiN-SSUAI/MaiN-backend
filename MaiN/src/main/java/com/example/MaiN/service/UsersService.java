@@ -16,6 +16,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -28,6 +30,7 @@ public class UsersService {
     private final OkHttpClient client = new OkHttpClient();
     private final JWTProvider jwtProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+
 
     private static final String usaintSSOUrl = "https://saint.ssu.ac.kr/webSSO/sso.jsp";
     private static final String usaintStudentUrl = "https://saint.ssu.ac.kr/webSSUMain/main_student.jsp";
@@ -135,10 +138,20 @@ public class UsersService {
 
             Document stdInfoDoc = Jsoup.parse(stdInfoResponseBody.string());
             Element stdInfoBox = stdInfoDoc.getElementsByClass("main_box09_con").first();
+            Element stdNameBox = stdInfoDoc.getElementsByClass("main_box09").first();
 
             if (stdInfoBox == null) {
                 throw new Exception("stdInfoBox Empty");
             }
+
+            if(stdNameBox == null){
+                throw new Exception("stdNameBox Empty");
+            }
+
+            Element nameBoxSpan = stdNameBox.getElementsByTag("span").first();
+
+            String stdName = nameBoxSpan.text();
+            stdName = stdName.split("님")[0];
 
             Elements stdInfoBoxLis = stdInfoBox.getElementsByTag("li");
 
@@ -161,7 +174,8 @@ public class UsersService {
     }
 
     public String login(@NotNull LoginRequestDto loginRequestDto) {
-        String accessToken = jwtProvider.generateAccessToken(loginRequestDto);
+        String stdId = loginRequestDto.getStudentId();
+        String accessToken = jwtProvider.generateAccessToken(stdId);
         String refreshToken = jwtProvider.generateRefreshToken();
 
         //refresh 토큰 정보 저장
@@ -172,7 +186,7 @@ public class UsersService {
 
         refreshTokenRepository.save(refreshTokenDB);
 
-        LoginReturnDto loginReturnDto = LoginReturnDto.builder()
+        TokenDto tokenDto = TokenDto.builder()
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .studentId(loginRequestDto.getStudentId())
@@ -181,41 +195,58 @@ public class UsersService {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            return objectMapper.writeValueAsString(loginReturnDto);
+            return objectMapper.writeValueAsString(tokenDto);
 
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-//    public ValidateReturnDto validateUser(@NotNull ValidateRequestDto validateRequestDto) throws Exception{
-//        boolean isValidToken;
-//
-//        try{
-//            isValidToken = jwtProvider.validateToken(validateRequestDto.getAccessToken());
-//        }catch (BadCredentialsException e){
-//            throw new Exception("Invalid access token");
-//        }
-//        catch (ExpiredJwtException e){ //access token 이 만료된 경우
-//            Optional<RefreshToken> refreshTokenOptional = refreshTokenRepository.findById(validateRequestDto.getRefreshToken());
-//
-//            if (refreshTokenOptional.isEmpty()){
-//                throw new Exception("refresh token does not exist");
-//            }
-//
-//            RefreshToken refreshToken = refreshTokenOptional.get();
-//            if(!refreshToken.getRefreshToken().equals(validateRequestDto.getAccessToken())){
-//                throw new Exception("access token 불일치");
-//            }
-//
-//            Optional<Users> usersOptional = usersRepository.findById(refreshToken.getStudentId());
-//            if(usersOptional.isEmpty()){
-//                throw new Exception("student doesn't exist");
-//            }
-//
-//            Users users = usersOptional.get();
-//
-//
-//        }
+    public TokenDto reissue(@NotNull TokenRequestDto tokenRequestDto) throws Exception {
+        //Refresh Token 검증
+        if(!jwtProvider.validateToken(tokenRequestDto.getRefreshToken())) {
+            throw new RuntimeException("Refresh Token 이 유효하지 않음");
+        }
+
+        //access token 에서 인증 정보 가져오기
+        Authentication authentication = jwtProvider.getAuthentication(tokenRequestDto.getAccessToken());
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String stdId = userDetails.getUsername();
+
+        //db에서 refresh token 찾아옴
+        RefreshToken refreshToken = refreshTokenRepository.findById(stdId)
+                .orElseThrow(() -> new RuntimeException("로그아웃 된 사용자"));
+
+        //클라이언트가 보낸 refresh token 과 db에 저장되어 있던 refresh token 이 일치하는지 검사
+        if(!refreshToken.getRefreshToken().equals(tokenRequestDto.getRefreshToken())) {
+            throw new RuntimeException("refresh token 이 일치하지 않음");
+        }
+
+        //일치한다면 새로운 access token 생성
+        String newAccessToken = jwtProvider.generateAccessToken(stdId);
+
+        TokenDto tokenDto = TokenDto.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(String.valueOf(refreshToken))
+                .studentId(stdId)
+                .build();
+
+        return tokenDto;
+    }
+
+    //로그아웃
+    public boolean logout(String stdId){
+        boolean exists = refreshTokenRepository.existsById(stdId);
+
+        if(exists){
+            refreshTokenRepository.deleteById(stdId);
+            return !refreshTokenRepository.existsById(stdId);
+        }
+        else{
+            return false;
+        }
+
+    }
+
 }
 
