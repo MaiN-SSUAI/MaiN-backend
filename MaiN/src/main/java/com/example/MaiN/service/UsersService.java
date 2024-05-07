@@ -177,7 +177,7 @@ public class UsersService {
         }
     }
 
-    public String login(@NotNull LoginRequestDto loginRequestDto) {
+    public TokenDto login(@NotNull LoginRequestDto loginRequestDto) {
         String stdId = loginRequestDto.getStudentId();
         String accessToken = jwtProvider.generateAccessToken(stdId);
         String refreshToken = jwtProvider.generateRefreshToken();
@@ -190,20 +190,14 @@ public class UsersService {
 
         refreshTokenRepository.save(refreshTokenDB);
 
-        TokenDto tokenDto = TokenDto.builder()
+        //        ObjectMapper objectMapper = new ObjectMapper();
+
+        return TokenDto.builder()
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .studentId(loginRequestDto.getStudentId())
             .build();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        try {
-            return objectMapper.writeValueAsString(tokenDto);
-
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public TokenDto reissue(@NotNull TokenRequestDto tokenRequestDto) throws Exception {

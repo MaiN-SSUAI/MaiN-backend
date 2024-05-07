@@ -1,9 +1,11 @@
 package com.example.MaiN.dto;
 
 import com.example.MaiN.entity.Users;
-import lombok.Builder;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Data
 public class UsersDto {
