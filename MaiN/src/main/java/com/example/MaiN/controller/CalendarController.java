@@ -40,7 +40,7 @@ public class CalendarController {
         return calendarService.getCalendarEvents(date,location);
     }
 
-    @PostMapping("/check/user")
+    @GetMapping("/check/user")
     @Operation(summary = "세미나실 사용자 등록")
     public ResponseEntity<?> addUsers(@RequestBody UsersDto usersDto, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
         return calendarService.checkUser(usersDto, date);
