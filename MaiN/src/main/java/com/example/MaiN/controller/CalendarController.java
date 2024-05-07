@@ -49,7 +49,7 @@ public class CalendarController {
     @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
-        String eventId = calendarService.addEvent(eventDto.getLocation(), Collections.singletonList(eventDto.getStudentId()), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+        String eventId = calendarService.addEvent(eventDto.getLocation(), eventDto.getStudentId(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
         eventDto.setEventId(eventId);
         Event event = eventDto.toEntity(); //dto를 entity로 변환
         Event saved = reservRepository.save(event); //repository를 이용하여 entity를 db에 저장
@@ -75,7 +75,7 @@ public class CalendarController {
         Event target = reservRepository.findByEventId(eventId); //타깃 조회
         target.patch(event);
         Event updated = reservRepository.save(target);
-        return calendarService.updateCalendarEvents(eventDto.getLocation(), Collections.singletonList(eventDto.getStudentId()), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(),eventId);
+        return calendarService.updateCalendarEvents(eventDto.getLocation(), eventDto.getStudentId(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(),eventId);
 
     }
 

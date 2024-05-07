@@ -265,7 +265,7 @@ public class CalendarService {
         }
     }
 
-    public String addEvent(String location, List<String> studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = getCalendarService();
 
         DateTime startDateTime = new DateTime(startDateTimeStr);
@@ -278,9 +278,9 @@ public class CalendarService {
         checkDuration(startDateTime, endDateTime);
         checkEventOverlaps(startDateTime, endDateTime, startDate, location);
 
-        System.out.println("Total reservations for student ID " + studentIds + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
+        System.out.println("Total reservations for student ID " + studentId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
 
-        String summary = String.format("%s/%s", location, studentIds);
+        String summary = String.format("%s/%s", location, studentId);
         Event event = new Event().setSummary(summary);
 
         EventDateTime start = new EventDateTime()
@@ -315,13 +315,13 @@ public class CalendarService {
         return "Event deleted successfully";
     }
 
-    public String updateCalendarEvents(String location,List<String> studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
+    public String updateCalendarEvents(String location, String studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
         Event event = service.events().get(CALENDAR_ID, eventId).execute();
 
-        String summary = String.format("%s/%s",location,studentId);
+        String summary = String.format("%s/%s",location, studentId);
         event.setSummary(summary);
 
         DateTime startDateTime = new DateTime(startDateTimeStr);
