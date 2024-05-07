@@ -45,14 +45,16 @@ public class UsersService {
         return usersRepository.findAll();
     }
 
-    public String addUser(UsersDto usersDto) {
-        Users foundUsers = usersRepository.findByStudentId(usersDto.getStudentId());
-        if (foundUsers != null) return "user with this student_id already exists"; //중복 저장 방지
-        else {
-            Users users = usersDto.toEntity();
-            Users saved = usersRepository.save(users);
-            return "user info saved";
+    public void addUser(String stdId){
+        //해당 학번이 이미 db 에 저장되어 있는지 확인
+        Users foundUser = usersRepository.findByStudentId(stdId);
+
+        if(foundUser == null){
+            Users user = new Users();
+            user.setStudentId(stdId);
+            usersRepository.save(user);
         }
+
     }
 
     //okhttp request 객체 생성
@@ -78,6 +80,8 @@ public class UsersService {
         String cookieList = fetchCookie(cookieRequestUrl, SSORequestHeaders);
 
         String stdMajor = fetchMajor(cookieList);
+
+        addUser(sIdno);
 
         Map<String, Object> stdInfo = new HashMap<>();
         stdInfo.put("학부", stdMajor);

@@ -57,7 +57,7 @@ public class UsersController {
     }
 
     //로그아웃
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     @Operation(summary = "로그아웃")
     public String logout(@RequestBody UsersDto usersDto){
         String stdId = usersDto.getStudentId();
