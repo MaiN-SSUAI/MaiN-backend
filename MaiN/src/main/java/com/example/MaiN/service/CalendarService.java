@@ -239,7 +239,8 @@ public class CalendarService {
         }
     }
 
-    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    // 예약 추가하기 (주최자)
+    public String addOrganizeEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
@@ -253,6 +254,31 @@ public class CalendarService {
         checkEventsPerMonth(startDate, endDate);
 
         System.out.println("Total reservations for student ID " + studentId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
+
+        String summary = String.format("%s/%s", location, studentId);
+        Event event = new Event().setSummary(summary);
+
+        EventDateTime start = new EventDateTime()
+                .setDateTime(startDateTime)
+                .setTimeZone("Asia/Seoul");
+        event.setStart(start);
+
+        EventDateTime end = new EventDateTime()
+                .setDateTime(endDateTime)
+                .setTimeZone("Asia/Seoul");
+        event.setEnd(end);
+
+        event = service.events().insert(CALENDAR_ID, event).execute();
+        return event.getId();
+    }
+
+    // 예약 추가하기 (주최자 제외 팀원들)
+    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+        Calendar service = getCalendarService();
+        DateTime startDateTime = new DateTime(startDateTimeStr);
+        DateTime endDateTime = new DateTime(endDateTimeStr);
+
+        System.out.println("Total reservations for student ID " + studentId + " from " + startDateTimeStr + " to " + endDateTimeStr);
 
         String summary = String.format("%s/%s", location, studentId);
         Event event = new Event().setSummary(summary);

@@ -32,6 +32,14 @@ public class Event {
     @Column(name = "event_id")
     private String eventId;
 
+    public Event(String location, String studentId, String startTime, String endTime, String eventId) {
+        this.location = location;
+        this.studentId = studentId;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.eventId = eventId;
+    }
+
     public void patch(Event event) {
         if (event.location != null)
             this.location = event.location;

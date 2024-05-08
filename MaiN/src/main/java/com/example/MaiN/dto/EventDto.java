@@ -19,16 +19,14 @@ public class EventDto {
     @Setter
     private String eventId;
 
-
-    //DTO객체를 Entity객체로 변환하는 메서드
-    public Event toEntity(){
-        return Event.builder()
-                .location(location)
-//                .studentId(studentIds)
-                .startTime(startDateTimeStr)
-                .endTime(endDateTimeStr)
-                .eventId(eventId)
-                .build();
+    // DTO객체를 Entity객체로 변환하는 메서드
+    public Event toEntity(String studentId){
+        return new Event(
+                this.location,
+                studentId,
+                this.startDateTimeStr,
+                this.endDateTimeStr,
+                this.eventId
+        );
     }
-
 }

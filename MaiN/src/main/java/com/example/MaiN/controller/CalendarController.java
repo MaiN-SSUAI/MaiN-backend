@@ -41,12 +41,19 @@ public class CalendarController {
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
         List<String> studentIds = eventDto.getStudentIds();
-        for (int i=0; i<studentIds.size(); i++) {
+        for (int i = 0; i<studentIds.size(); i++) {
             String studentId = studentIds.get(i);
-            String eventId = calendarService.addEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-            eventDto.setEventId(eventId);
-            Event event = eventDto.toEntity();
-            Event saved = reservRepository.save(event);
+            if (i == 0) {
+                String eventId = calendarService.addOrganizeEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                eventDto.setEventId(eventId);
+                Event event = eventDto.toEntity(studentId);
+                Event saved = reservRepository.save(event);
+            } else {
+                String eventId = calendarService.addEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                eventDto.setEventId(eventId);
+                Event event = eventDto.toEntity(studentId);
+                Event saved = reservRepository.save(event);
+            }
         }
         return "success";
     }
@@ -66,7 +73,7 @@ public class CalendarController {
     @Operation(summary = "예약 수정")
     public String patch(@PathVariable("eventId") String eventId, @RequestBody EventDto eventDto) throws Exception{
 
-        Event event = eventDto.toEntity(); //DTO->entity 변환
+        Event event = eventDto.toEntity(eventId); //DTO->entity 변환
         Event target = reservRepository.findByEventId(eventId); //타깃 조회
         target.patch(event);
         Event updated = reservRepository.save(target);
