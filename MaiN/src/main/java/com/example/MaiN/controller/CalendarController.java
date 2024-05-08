@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @Tag(name="Calendar-Controller",description = "세미나실 예약 관련 API")
@@ -39,10 +40,14 @@ public class CalendarController {
     @PostMapping("/add")
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
-        String eventId = calendarService.addEvent(eventDto.getLocation(), eventDto.getStudentIds(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-        eventDto.setEventId(eventId);
-        Event event = eventDto.toEntity(); //dto를 entity로 변환
-        Event saved = reservRepository.save(event); //repository를 이용하여 entity를 db에 저장
+        List<String> studentIds = eventDto.getStudentIds();
+        for (int i=0; i<studentIds.size(); i++) {
+            String studentId = studentIds.get(i);
+            String eventId = calendarService.addEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+            eventDto.setEventId(eventId);
+            Event event = eventDto.toEntity();
+            Event saved = reservRepository.save(event);
+        }
         return "success";
     }
 

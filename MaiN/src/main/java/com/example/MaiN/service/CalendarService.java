@@ -239,9 +239,8 @@ public class CalendarService {
         }
     }
 
-    public String addEvent(String location, List<String> studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = getCalendarService();
-
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
@@ -253,9 +252,9 @@ public class CalendarService {
         checkEventOverlaps(startDateTime, endDateTime, startDate, location);
         checkEventsPerMonth(startDate, endDate);
 
-        System.out.println("Total reservations for student ID " + studentIds + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
+        System.out.println("Total reservations for student ID " + studentId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
 
-        String summary = String.format("%s/%s", location, studentIds);
+        String summary = String.format("%s/%s", location, studentId);
         Event event = new Event().setSummary(summary);
 
         EventDateTime start = new EventDateTime()

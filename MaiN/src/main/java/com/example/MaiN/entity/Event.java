@@ -20,8 +20,8 @@ public class Event {
     @Column
     private String location;
 
-    @Column(name = "student_ids")
-    private List<String> studentIds;
+    @Column(name = "student_id")
+    private String studentId;
 
     @Column(name = "start_time")
     private String startTime;
@@ -35,8 +35,8 @@ public class Event {
     public void patch(Event event) {
         if (event.location != null)
             this.location = event.location;
-        if(event.studentIds != null)
-            this.studentIds = event.studentIds;
+        if(event.studentId != null)
+            this.studentId = event.studentId;
         if (event.startTime != null)
             this.startTime = event.startTime;
         if (event.endTime != null)

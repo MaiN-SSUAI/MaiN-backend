@@ -24,7 +24,7 @@ public class EventDto {
     public Event toEntity(){
         return Event.builder()
                 .location(location)
-                .studentIds(studentIds)
+//                .studentId(studentIds)
                 .startTime(startDateTimeStr)
                 .endTime(endDateTimeStr)
                 .eventId(eventId)
