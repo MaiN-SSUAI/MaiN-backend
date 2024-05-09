@@ -5,6 +5,8 @@ import com.example.MaiN.entity.Users;
 import com.example.MaiN.repository.UsersRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UsersService {
     private final UsersRepository usersRepository;
@@ -18,8 +20,8 @@ public class UsersService {
     }
 
     public String addUser(UsersDto usersDto){
-        Users foundUsers = usersRepository.findByStudentId(usersDto.getStudentId());
-        if (foundUsers != null) return "user with this student_id already exists"; //중복 저장 방지
+        Optional<Users> foundUsers = usersRepository.findByStudentId(usersDto.getStudentId());
+        if (!foundUsers.isPresent()) return "user with this student_id already exists"; //중복 저장 방지
         else {
             Users users = usersDto.toEntity();
             Users saved = usersRepository.save(users);
