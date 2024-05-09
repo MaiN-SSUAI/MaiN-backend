@@ -254,16 +254,14 @@ public class CalendarService {
         }
     }
 
-
-    private void checkEventsPerMonth(LocalDate startDate, LocalDate endDate) throws CustomException {
+    private void checkEventsPerMonth(LocalDate date) throws CustomException {
         LocalDate today = LocalDate.now();
         LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-        if (startDate.isBefore(startOfThisMonth) || endDate.isAfter(endOfNextMonth)) {
+        if (date.isBefore(startOfThisMonth)|| date.isAfter(endOfNextMonth)) {
             throw new CustomException("Reservation can only be made for this month and the next month");
         }
     }
-
 
     // 예약 추가하기 (주최자)
     public String addOrganizeEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
@@ -275,7 +273,6 @@ public class CalendarService {
         // 에약 제한 사항들
         checkDuration(startDateTime, endDateTime);
         checkEventOverlaps(startDateTime, endDateTime, startDate, location);
-        checkEventsPerMonth(startDate, endDate);
         System.out.println("Total reservations for student ID " + studentId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
         String summary = String.format("%s/%s", location, studentId);
         Event event = new Event().setSummary(summary);
