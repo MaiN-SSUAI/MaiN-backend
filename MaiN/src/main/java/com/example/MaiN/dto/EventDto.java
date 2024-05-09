@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 import java.time.OffsetDateTime;
 
 @NoArgsConstructor
@@ -14,22 +16,20 @@ import java.time.OffsetDateTime;
 @Getter
 public class EventDto {
     private String location;
-    private String studentId;
+    private List<String> studentIds;
     private String startDateTimeStr;
     private String endDateTimeStr;
     @Setter
     private String eventId;
 
-
-    //DTO객체를 Entity객체로 변환하는 메서드
-    public Event toEntity(){
-        return Event.builder()
-                .location(location)
-                .studentId(studentId)
-                .startTime(startDateTimeStr)
-                .endTime(endDateTimeStr)
-                .eventId(eventId)
-                .build();
+    // DTO객체를 Entity객체로 변환하는 메서드
+    public Event toEntity(String studentId){
+        return new Event(
+                this.location,
+                studentId,
+                this.startDateTimeStr,
+                this.endDateTimeStr,
+                this.eventId
+        );
     }
-
 }

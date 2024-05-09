@@ -41,7 +41,6 @@ import java.io.*;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.Map;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -212,6 +211,7 @@ public class CalendarService {
         }
     }
 
+
     // 해당 주에 해당하는 예약만 필터링
 
     private void checkEventsPerWeek(String studentId, LocalDate date){
@@ -243,8 +243,6 @@ public class CalendarService {
         }
         if (!existingEventsJson.equals("No Upcoming events found")) {
             ObjectMapper objectMapper = new ObjectMapper();
-            //List<Map<String, Object>> existingEvents = objectMapper.readValue(existingEventsJson, new TypeReference<List<Map<String, Object>>>(){});
-
             for (Map<String, Object> event : existingEventsJson) {
                 DateTime existingStart = new DateTime((String) event.get("start"));
                 DateTime existingEnd = new DateTime((String) event.get("end"));
@@ -256,29 +254,50 @@ public class CalendarService {
         }
     }
 
-    private void checkEventsPerMonth(LocalDate date) throws CustomException {
+
+    private void checkEventsPerMonth(LocalDate startDate, LocalDate endDate) throws CustomException {
         LocalDate today = LocalDate.now();
         LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-        if (date.isBefore(startOfThisMonth)|| date.isAfter(endOfNextMonth)) {
+        if (startDate.isBefore(startOfThisMonth) || endDate.isAfter(endOfNextMonth)) {
             throw new CustomException("Reservation can only be made for this month and the next month");
         }
     }
 
-    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
-        Calendar service = getCalendarService();
 
+    // 예약 추가하기 (주최자)
+    public String addOrganizeEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+        Calendar service = getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
-
         LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
         LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
-
         // 에약 제한 사항들
         checkDuration(startDateTime, endDateTime);
         checkEventOverlaps(startDateTime, endDateTime, startDate, location);
-
+        checkEventsPerMonth(startDate, endDate);
         System.out.println("Total reservations for student ID " + studentId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
+        String summary = String.format("%s/%s", location, studentId);
+        Event event = new Event().setSummary(summary);
+        EventDateTime start = new EventDateTime()
+                .setDateTime(startDateTime)
+                .setTimeZone("Asia/Seoul");
+        event.setStart(start);
+        EventDateTime end = new EventDateTime()
+                .setDateTime(endDateTime)
+                .setTimeZone("Asia/Seoul");
+        event.setEnd(end);
+        event = service.events().insert(CALENDAR_ID, event).execute();
+        return event.getId();
+    }
+
+    // 예약 추가하기 (주최자 제외 팀원들)
+    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+        Calendar service = getCalendarService();
+        DateTime startDateTime = new DateTime(startDateTimeStr);
+        DateTime endDateTime = new DateTime(endDateTimeStr);
+
+        System.out.println("Total reservations for student ID " + studentId + " from " + startDateTimeStr + " to " + endDateTimeStr);
 
         String summary = String.format("%s/%s", location, studentId);
         Event event = new Event().setSummary(summary);
@@ -315,7 +334,8 @@ public class CalendarService {
         return "Event deleted successfully";
     }
 
-    public String updateCalendarEvents(String location, String studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
+
+    public String updateCalendarEvents(String location,List<String> studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
