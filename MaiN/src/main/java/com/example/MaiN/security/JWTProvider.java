@@ -35,8 +35,8 @@ public class JWTProvider {
     @Value("${jwt.refresh-expiration}")
     private Long REFRESH_EXPIRATION;
 
-//    @Value("${jwt.secret")
-//    private String secret_key;
+    @Value("${jwt.secret}")
+    private String secret_key;
 
     //토큰 secret key
     private Key JWT_SECRET;
@@ -44,10 +44,8 @@ public class JWTProvider {
     private static final String BEARER_TYPE = "Bearer";
 
     private SecretKey getSigningKey(){
-        String secret_key = "81be7ddae02bd22cd41d1d7492e1c7e4841445587b65829b787801b49583dd38d26c063a43bca8c568314d0610421d9f0e1fa9b13ac05e5533a7622842710fa1";
         byte[] keyBytes = new byte[secret_key.length()/2];
         this.JWT_SECRET = Keys.hmacShaKeyFor(secret_key.getBytes(StandardCharsets.UTF_8));
-//         this.JWT_SECRET = Jwts.SIG.HS256.key().build();
         return (SecretKey) this.JWT_SECRET;
     }
 

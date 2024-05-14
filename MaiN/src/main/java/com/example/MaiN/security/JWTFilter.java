@@ -31,7 +31,10 @@ public class JWTFilter extends OncePerRequestFilter {
     //필터링 로직
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(request.getRequestURI().equals("/users/login")) {
+
+        String path = request.getRequestURI();
+
+        if(path.equals("/users/login")|| path.startsWith("/swagger") || path.startsWith("/api-docs") || path.startsWith("/v3")) {
             filterChain.doFilter(request,response);
             return;
         }
