@@ -211,7 +211,7 @@ public class CalendarService {
         }
     }
 
-    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(String location, String studentNo, String startDateTimeStr, String endDateTimeStr) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
@@ -246,7 +246,7 @@ public class CalendarService {
         LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
 
-        List<com.example.MaiN.entity.Event> reservations = reservRepository.findByStudentId(studentId);
+        List<com.example.MaiN.entity.Event> reservations = reservRepository.findBystudentNo(studentNo);
 
         // existingEventsJson로 겹치는 이벤트 있는지 확인
         if (!existingEventsJson.equals("No Upcoming events found")) {
@@ -287,9 +287,9 @@ public class CalendarService {
             throw new CustomException("Reservation can only be made for this month and the next month");
         }
 
-        System.out.println("Total reservations for student ID " + studentId + " from " + startOfWeek + " to " + endOfWeek + ": " + countThisWeek);
+        System.out.println("Total reservations for student ID " + studentNo + " from " + startOfWeek + " to " + endOfWeek + ": " + countThisWeek);
 
-        String summary = String.format("%s/%s", location, studentId);
+        String summary = String.format("%s/%s", location, studentNo);
         Event event = new Event().setSummary(summary);
 
         EventDateTime start = new EventDateTime()
@@ -315,13 +315,13 @@ public class CalendarService {
         return "Event deleted successfully";
     }
 
-    public String updateCalendarEvents(String location,String studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
+    public String updateCalendarEvents(String location,String studentNo, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
         Event event = service.events().get(CALENDAR_ID, eventId).execute();
 
-        String summary = String.format("%s/%s",location,studentId);
+        String summary = String.format("%s/%s",location,studentNo);
         event.setSummary(summary);
 
         DateTime startDateTime = new DateTime(startDateTimeStr);

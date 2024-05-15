@@ -1,6 +1,5 @@
 package com.example.MaiN.dto;
 
-import com.example.MaiN.entity.Users;
 import lombok.*;
 
 @Builder
@@ -8,14 +7,14 @@ import lombok.*;
 @AllArgsConstructor
 @Data
 public class LoginRequestDto {
-    private String studentId;
+    private String studentNo;
 
-    public String getStudentId() {
-        return studentId;
+    public String getstudentNo() {
+        return studentNo;
     }
 
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
+    public void setstudentNo(String studentNo) {
+        this.studentNo = studentNo;
     }
 
 

@@ -2,12 +2,10 @@ package com.example.MaiN.service;
 
 import com.example.MaiN.dto.*;
 import com.example.MaiN.entity.RefreshToken;
-import com.example.MaiN.entity.Users;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.RefreshTokenRepository;
-import com.example.MaiN.repository.UsersRepository;
+import com.example.MaiN.repository.UserRepository;
 import com.example.MaiN.security.JWTProvider;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.security.auth.message.AuthException;
 import jakarta.validation.constraints.NotNull;
 import okhttp3.*;
@@ -26,7 +24,7 @@ import java.util.Map;
 
 @Service
 public class UsersService {
-    private final UsersRepository usersRepository;
+    private final UserRepository userRepository;
     private final OkHttpClient client = new OkHttpClient();
     private final JWTProvider jwtProvider;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -35,24 +33,24 @@ public class UsersService {
     private static final String usaintSSOUrl = "https://saint.ssu.ac.kr/webSSO/sso.jsp";
     private static final String usaintStudentUrl = "https://saint.ssu.ac.kr/webSSUMain/main_student.jsp";
 
-    public UsersService(UsersRepository usersRepository, AuthenticationManagerBuilder authenticationManagerBuilder, JWTProvider jwtProvider, RefreshTokenRepository refreshTokenRepository) {
-        this.usersRepository = usersRepository;
+    public UsersService(UserRepository userRepository, AuthenticationManagerBuilder authenticationManagerBuilder, JWTProvider jwtProvider, RefreshTokenRepository refreshTokenRepository) {
+        this.userRepository = userRepository;
         this.jwtProvider = jwtProvider;
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    public Iterable<Users> findAllUsers() {
-        return usersRepository.findAll();
+    public Iterable<User> findAllUsers() {
+        return userRepository.findAll();
     }
 
     public void addUser(String stdId){
         //해당 학번이 이미 db 에 저장되어 있는지 확인
-        Users foundUser = usersRepository.findByStudentId(stdId);
+        User foundUser = userRepository.findByStudentNo(stdId);
 
         if(foundUser == null){
-            Users user = new Users();
-            user.setStudentId(stdId);
-            usersRepository.save(user);
+            User user = new User();
+            user.setStudentNo(stdId);
+            userRepository.save(user);
         }
 
     }
@@ -178,13 +176,13 @@ public class UsersService {
     }
 
     public TokenDto login(@NotNull LoginRequestDto loginRequestDto) {
-        String stdId = loginRequestDto.getStudentId();
+        String stdId = loginRequestDto.getstudentNo();
         String accessToken = jwtProvider.generateAccessToken(stdId);
         String refreshToken = jwtProvider.generateRefreshToken();
 
         //refresh 토큰 정보 저장
         RefreshToken refreshTokenDB = RefreshToken.builder()
-                .studentId(loginRequestDto.getStudentId())
+                .studentNo(loginRequestDto.getstudentNo())
                 .refreshToken(refreshToken)
                 .build();
 
@@ -195,7 +193,7 @@ public class UsersService {
         return TokenDto.builder()
             .accessToken(accessToken)
             .refreshToken(refreshToken)
-            .studentId(loginRequestDto.getStudentId())
+            .studentNo(loginRequestDto.getstudentNo())
             .build();
 
     }
@@ -226,7 +224,7 @@ public class UsersService {
         TokenDto tokenDto = TokenDto.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(String.valueOf(refreshToken))
-                .studentId(stdId)
+                .studentNo(stdId)
                 .build();
 
         return tokenDto;

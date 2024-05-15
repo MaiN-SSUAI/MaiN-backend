@@ -18,8 +18,8 @@ import lombok.NoArgsConstructor;
 public class RefreshToken {
 
     @Id
-    @Column(name = "student_id")
-    private String studentId;
+    @Column(name = "student_no")
+    private String studentNo;
 
     @Column(name = "refresh_token")
     private String refreshToken;

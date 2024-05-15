@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 public class EventDto {
     private String location;
-    private String studentId;
+    private String studentNo;
     private String startDateTimeStr;
     private String endDateTimeStr;
     @Setter
@@ -22,7 +22,7 @@ public class EventDto {
     public Event toEntity(){
         return Event.builder()
                 .location(location)
-                .studentId(studentId)
+                .studentNo(studentNo)
                 .startTime(startDateTimeStr)
                 .endTime(endDateTimeStr)
                 .eventId(eventId)

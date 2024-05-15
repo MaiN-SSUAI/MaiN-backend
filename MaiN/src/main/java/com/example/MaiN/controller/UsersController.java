@@ -1,13 +1,10 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.*;
-import com.example.MaiN.entity.Users;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
-import okhttp3.Response;
-import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +22,7 @@ public class UsersController {
 
     //사용자 학번 모두 불러오기
     @GetMapping("/all")
-    public Iterable<Users> list() { return usersService.findAllUsers(); }
+    public Iterable<User> list() { return usersService.findAllUsers(); }
 
     //학번 -> db 에 저장
 //    @PostMapping("/add")
@@ -43,7 +40,7 @@ public class UsersController {
 
         if(stdMajor.equals("AI융합학부")) {
             LoginRequestDto loginRequestDto = new LoginRequestDto();
-            loginRequestDto.setStudentId(stdId);
+            loginRequestDto.setstudentNo(stdId);
             return ResponseEntity.ok().body(usersService.login(loginRequestDto));
         }
         else{
@@ -61,9 +58,9 @@ public class UsersController {
     //로그아웃
     @DeleteMapping("/logout")
     @Operation(summary = "로그아웃")
-    public ResponseEntity<?> logout(@RequestBody UsersDto usersDto){
-        String stdId = usersDto.getStudentId();
-        boolean result = usersService.logout(stdId);
+    public ResponseEntity<?> logout(@RequestBody UserDto userDto){
+        String stdNo = userDto.getStudentNo();
+        boolean result = usersService.logout(stdNo);
         if(result) return ResponseEntity.ok().body( "로그아웃 성공");
         else return ResponseEntity.badRequest().body("이미 로그아웃 된 사용자");
     }

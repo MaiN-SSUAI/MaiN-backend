@@ -19,23 +19,23 @@ public class AiNotiFavorController {
     @Autowired
     private AiNotiFavorService aiNotiFavorService;
 
-    @PostMapping("/add/{studentId}/{aiNotiId}")
+    @PostMapping("/add/{studentNo}/{aiNotiId}")
     @Operation(summary="북마크 추가")
-    public ResponseEntity<AiNotiFavor> addFavorite(@PathVariable String studentId, @PathVariable int aiNotiId) {
-        AiNotiFavor favorite = aiNotiFavorService.addFavorite(studentId, aiNotiId);
+    public ResponseEntity<AiNotiFavor> addFavorite(@PathVariable String studentNo, @PathVariable int aiNotiId) {
+        AiNotiFavor favorite = aiNotiFavorService.addFavorite(studentNo, aiNotiId);
         return ResponseEntity.ok(favorite);
     }
-    @DeleteMapping("delete/{studentId}/{aiNotiId}")
+    @DeleteMapping("delete/{studentNo}/{aiNotiId}")
     @Operation(summary="북마크 삭제")
-    public ResponseEntity<?> deleteFavorite(@PathVariable String studentId, @PathVariable int aiNotiId) {
-        aiNotiFavorService.deleteFavorite(studentId, aiNotiId);
+    public ResponseEntity<?> deleteFavorite(@PathVariable String studentNo, @PathVariable int aiNotiId) {
+        aiNotiFavorService.deleteFavorite(studentNo, aiNotiId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/all/{studentId}")
+    @GetMapping("/all/{studentNo}")
     @Operation(summary = "모든 북마크 보기")
-    public ResponseEntity<List<AiNotiDto>> getAiNotiWithFavorites(@PathVariable String studentId) {
-        List<AiNotiDto> aiNotilist = aiNotiFavorService.getAiNotiWithFavorites(studentId);
+    public ResponseEntity<List<AiNotiDto>> getAiNotiWithFavorites(@PathVariable String studentNo) {
+        List<AiNotiDto> aiNotilist = aiNotiFavorService.getAiNotiWithFavorites(studentNo);
         return ResponseEntity.ok(aiNotilist);
     }
 }

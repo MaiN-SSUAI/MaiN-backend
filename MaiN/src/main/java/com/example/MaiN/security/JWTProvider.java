@@ -57,7 +57,7 @@ public class JWTProvider {
         Date expiration = new Date(now.getTime() + this.JWT_EXPIRATION);
 
         return Jwts.builder()
-                .claim("studentId",stdId)
+                .claim("studentNo",stdId)
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(this.getSigningKey())
@@ -102,12 +102,12 @@ public class JWTProvider {
     public Authentication getAuthentication(String accessToken) throws Exception {
         Claims claims = parseClaims(accessToken);
 
-        String studentId = (String) claims.get("studentId");
-        if(studentId == null){
+        String studentNo = (String) claims.get("studentNo");
+        if(studentNo == null){
             throw  new Exception("토큰에서 학번 파싱 못함");
         }
 
-        UserDetails principal = new User(studentId,"", List.of());
+        UserDetails principal = new User(studentNo,"", List.of());
         return new UsernamePasswordAuthenticationToken(principal,"",List.of());
     }
 

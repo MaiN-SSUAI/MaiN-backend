@@ -19,23 +19,23 @@ public class FunsysNotiFavorController {
     @Autowired
     private FunsysNotiFavorService funsysNotiFavorService;
 
-    @PostMapping("/add/{studentId}/{funsysNotiId}")
+    @PostMapping("/add/{studentNo}/{funsysNotiId}")
     @Operation(summary = "북마크 추가")
-    public ResponseEntity<FunsysNotiFavor> addFavorite(@PathVariable String studentId, @PathVariable int funsysNotiId) {
-        FunsysNotiFavor favorite = funsysNotiFavorService.addFavorite(studentId, funsysNotiId);
+    public ResponseEntity<FunsysNotiFavor> addFavorite(@PathVariable String studentNo, @PathVariable int funsysNotiId) {
+        FunsysNotiFavor favorite = funsysNotiFavorService.addFavorite(studentNo, funsysNotiId);
         return ResponseEntity.ok(favorite);
     }
-    @DeleteMapping("delete/{studentId}/{funsysNotiId}")
+    @DeleteMapping("delete/{studentNo}/{funsysNotiId}")
     @Operation(summary = "북마크 삭제")
-    public ResponseEntity<?> deleteFavorite(@PathVariable String studentId, @PathVariable int funsysNotiId) {
-        funsysNotiFavorService.deleteFavorite(studentId, funsysNotiId);
+    public ResponseEntity<?> deleteFavorite(@PathVariable String studentNo, @PathVariable int funsysNotiId) {
+        funsysNotiFavorService.deleteFavorite(studentNo, funsysNotiId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/all/{studentId}")
+    @GetMapping("/all/{studentNo}")
     @Operation(summary = "모든 북마크 보기")
-    public ResponseEntity<List<FunsysNotiDto>> getFunsysNotiWithFavorites(@PathVariable int studentId) {
-        List<FunsysNotiDto> funsysNotis = funsysNotiFavorService.getFunsysNotiWithFavorites(studentId);
+    public ResponseEntity<List<FunsysNotiDto>> getFunsysNotiWithFavorites(@PathVariable int studentNo) {
+        List<FunsysNotiDto> funsysNotis = funsysNotiFavorService.getFunsysNotiWithFavorites(studentNo);
         return ResponseEntity.ok(funsysNotis);
     }
 }
