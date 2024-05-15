@@ -2,7 +2,11 @@ package com.example.MaiN.service;
 
 
 import com.example.MaiN.dto.EventDto;
+import com.example.MaiN.dto.UserDto;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.ReservRepository;
+import com.example.MaiN.repository.UserRepository;
+import com.google.j2objc.annotations.AutoreleasePool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
@@ -37,7 +41,6 @@ import java.io.*;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
-import java.util.Map;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -53,6 +56,8 @@ public class CalendarService {
     //    private static final String CALENDAR_ID = "maintest39@gmail.com"; //테스트 계정 캘린더
     @Autowired
     private ReservRepository reservRepository;
+    @Autowired
+    private UserRepository UserRepository;
 
     //API사용을 위한 인증 정보를 가져오는 메서드
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
@@ -181,78 +186,62 @@ public class CalendarService {
         //가져온 이벤트들을 리스트에 저장
         List<Event> eventsList = events.getItems();
 
-        if (eventsList.isEmpty()) {
-            return ResponseEntity.badRequest().body("No Upcoming events found");
-        } else {
-            List<Map<String, Object>> eventsMapList = new ArrayList<>();
-            for (Event event : eventsList) {
-                if (event.getSummary() != null) {
-                    // 이벤트 요약에서 공백 제거
-                    String summaryWithoutSpaces = event.getSummary().replaceAll("\\s+", "");
-                    // 입력받은 위치에서 공백 제거
-                    String locationWithoutSpaces = location.replaceAll("\\s+", "");
+        List<Map<String, Object>> eventsMapList = new ArrayList<>();
+        for (Event event : eventsList) {
+            if (event.getSummary() != null) {
+                // 이벤트 요약에서 공백 제거
+                String summaryWithoutSpaces = event.getSummary().replaceAll("\\s+", "");
+                // 입력받은 위치에서 공백 제거
+                String locationWithoutSpaces = location.replaceAll("\\s+", "");
 
-                    // 공백이 제거된 문자열을 사용하여 포함 관계 검사
-                    if (summaryWithoutSpaces.contains(locationWithoutSpaces)) {
-                        eventsMapList.add(toMap(eventsList, event, date));
-                    }
+                // 공백이 제거된 문자열을 사용하여 포함 관계 검사
+                if (summaryWithoutSpaces.contains(locationWithoutSpaces)) {
+                    eventsMapList.add(toMap(eventsList, event, date));
                 }
             }
+        }
+        return ResponseEntity.ok(eventsMapList);
+    }
 
-            /*ObjectMapper objectMapper = new ObjectMapper();
-            String jsonString = "";
-            try {
-                jsonString = objectMapper.writeValueAsString(eventsMapList);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }*/
-            //return jsonString;
-            return ResponseEntity.ok(eventsMapList);
+    private void checkDuration(DateTime startDateTime, DateTime endDateTime) throws CustomException {
+        long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
+        long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
+        if (durationInMillis > twoHoursInMillis) {
+            throw new CustomException("More than 2 hours");
         }
     }
 
-    public String addEvent(String location, String studentNo, String startDateTimeStr, String endDateTimeStr) throws Exception {
-        //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
-        Calendar service = getCalendarService();
+    // 해당 주에 해당하는 예약만 필터링
 
-        DateTime startDateTime = new DateTime(startDateTimeStr);
-        DateTime endDateTime = new DateTime(endDateTimeStr);
+    private void checkEventsPerWeek(String studentId, LocalDate date){
+        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        List<com.example.MaiN.entity.Event> reservations = reservRepository.findByStudentId(studentId);
+        long countThisWeek = reservations.stream()
+                .filter(r -> {
+                    LocalDate reservationDate = LocalDate.parse(r.getStartTime().split("T")[0], DateTimeFormatter.ISO_DATE);
+                    return !reservationDate.isBefore(startOfWeek) && !reservationDate.isAfter(endOfWeek);
+                })
+                .count();
 
-        // 예약 날짜 파싱
-        LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
-        LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
+            if (countThisWeek >= 2) {
+                throw new CustomException("More than 2 appointments a week");
+            }
+    }
 
-        // 기존 이벤트와의 충돌을 확인
-        String date = startDateTime.toStringRfc3339().split("T")[0];
+    private void checkEventOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate, String location) throws Exception {
         ResponseEntity<?> response = getCalendarEvents(startDate, location);
         List<Map<String, Object>> existingEventsJson = new ArrayList<>();
-
         if (response.getBody() instanceof List<?>) {
             List<?> rawList = (List<?>) response.getBody();
             if (!rawList.isEmpty() && rawList.get(0) instanceof Map) {
-                // 올바른 위치에 @SuppressWarnings 어노테이션 적용
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> castedList = (List<Map<String, Object>>) rawList;
-                existingEventsJson = castedList; // 값을 재할당
+                existingEventsJson = castedList;
             }
         }
-        // 해당 주의 시작과 끝 날짜 계산
-        LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
-        LocalDate startOfWeek = targetDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = targetDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-
-        // 현재 날짜 기준으로 예약 가능 기간 설정
-        LocalDate today = LocalDate.now();
-        LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-
-        List<com.example.MaiN.entity.Event> reservations = reservRepository.findBystudentNo(studentNo);
-
-        // existingEventsJson로 겹치는 이벤트 있는지 확인
         if (!existingEventsJson.equals("No Upcoming events found")) {
             ObjectMapper objectMapper = new ObjectMapper();
-            //List<Map<String, Object>> existingEvents = objectMapper.readValue(existingEventsJson, new TypeReference<List<Map<String, Object>>>(){});
-
             for (Map<String, Object> event : existingEventsJson) {
                 DateTime existingStart = new DateTime((String) event.get("start"));
                 DateTime existingEnd = new DateTime((String) event.get("end"));
@@ -262,34 +251,51 @@ public class CalendarService {
                 }
             }
         }
+    }
 
-        //2시간 이상인지 체크
-        long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
-        long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
-        if (durationInMillis > twoHoursInMillis) {
-            throw new CustomException("More than 2 hours");
-        }
-
-        // 해당 주에 해당하는 예약만 필터링
-        long countThisWeek = reservations.stream()
-                .filter(r -> {
-                    LocalDate reservationDate = LocalDate.parse(r.getStartTime().split("T")[0], DateTimeFormatter.ISO_DATE);
-                    return !reservationDate.isBefore(startOfWeek) && !reservationDate.isAfter(endOfWeek);
-                })
-                .count();
-
-        if (countThisWeek >= 2) {
-            throw new CustomException("More than 2 appointments a week");
-        }
-
-        // 예약 가능 기간 외 예약 차단 로직
-        if (startDate.isBefore(startOfThisMonth) || endDate.isAfter(endOfNextMonth)) {
+    private void checkEventsPerMonth(LocalDate date) throws CustomException {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+        if (date.isBefore(startOfThisMonth)|| date.isAfter(endOfNextMonth)) {
             throw new CustomException("Reservation can only be made for this month and the next month");
         }
+    }
 
-        System.out.println("Total reservations for student ID " + studentNo + " from " + startOfWeek + " to " + endOfWeek + ": " + countThisWeek);
+    // 예약 추가하기 (주최자)
+    public String addOrganizeEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+        Calendar service = getCalendarService();
+        DateTime startDateTime = new DateTime(startDateTimeStr);
+        DateTime endDateTime = new DateTime(endDateTimeStr);
+        LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
+        LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
+        // 에약 제한 사항들
+        checkDuration(startDateTime, endDateTime);
+        checkEventOverlaps(startDateTime, endDateTime, startDate, location);
+        System.out.println("Total reservations for student ID " + studentId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
+        String summary = String.format("%s/%s", location, studentId);
+        Event event = new Event().setSummary(summary);
+        EventDateTime start = new EventDateTime()
+                .setDateTime(startDateTime)
+                .setTimeZone("Asia/Seoul");
+        event.setStart(start);
+        EventDateTime end = new EventDateTime()
+                .setDateTime(endDateTime)
+                .setTimeZone("Asia/Seoul");
+        event.setEnd(end);
+        event = service.events().insert(CALENDAR_ID, event).execute();
+        return event.getId();
+    }
 
-        String summary = String.format("%s/%s", location, studentNo);
+    // 예약 추가하기 (주최자 제외 팀원들)
+    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+        Calendar service = getCalendarService();
+        DateTime startDateTime = new DateTime(startDateTimeStr);
+        DateTime endDateTime = new DateTime(endDateTimeStr);
+
+        System.out.println("Total reservations for student ID " + studentId + " from " + startDateTimeStr + " to " + endDateTimeStr);
+
+        String summary = String.format("%s/%s", location, studentId);
         Event event = new Event().setSummary(summary);
 
         EventDateTime start = new EventDateTime()
@@ -306,7 +312,16 @@ public class CalendarService {
         return event.getId();
     }
 
+    public ResponseEntity<?> checkUser(UserDto UserDto, LocalDate date) {
 
+        Optional<User> checkUser = Optional.ofNullable(UserRepository.findByStudentNo(UserDto.getStudentNo()));
+        if(!checkUser.isPresent()){
+            return ResponseEntity.ok("uninformed/valid user");
+        }
+        checkEventsPerMonth(date);
+        checkEventsPerWeek(UserDto.getStudentNo(), date);
+        return ResponseEntity.ok("informed/valid user");
+    }
 
     public String deleteCalendarEvents(String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
@@ -315,13 +330,13 @@ public class CalendarService {
         return "Event deleted successfully";
     }
 
-    public String updateCalendarEvents(String location,String studentNo, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
+    public String updateCalendarEvents(String location,List<String> studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
         Event event = service.events().get(CALENDAR_ID, eventId).execute();
 
-        String summary = String.format("%s/%s",location,studentNo);
+        String summary = String.format("%s/%s",location, studentId);
         event.setSummary(summary);
 
         DateTime startDateTime = new DateTime(startDateTimeStr);

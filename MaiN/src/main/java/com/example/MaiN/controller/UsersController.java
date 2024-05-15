@@ -26,8 +26,8 @@ public class UsersController {
 
     //학번 -> db 에 저장
 //    @PostMapping("/add")
-//    public String postUserInfo(@RequestBody UsersDto usersDto) {
-//        return usersService.addUser(usersDto);
+//    public String postUserInfo(@RequestBody UserDto UserDto) {
+//        return usersService.addUser(UserDto);
 //    }
 
     @PostMapping("/login")
