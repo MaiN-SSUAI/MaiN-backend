@@ -18,9 +18,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class UsersService {
@@ -43,13 +45,14 @@ public class UsersService {
         return userRepository.findAll();
     }
 
-    public void addUser(String stdId){
+    public void addUser(String stdNo,String stdName){
         //해당 학번이 이미 db 에 저장되어 있는지 확인
-        User foundUser = userRepository.findByStudentNo(stdId);
+        User foundUser = userRepository.findByStudentNo(stdNo);
 
         if(foundUser == null){
             User user = new User();
-            user.setStudentNo(stdId);
+            user.setStudentNo(stdNo);
+            user.setStudentName(stdName);
             userRepository.save(user);
         }
 
@@ -78,8 +81,6 @@ public class UsersService {
         String cookieList = fetchCookie(cookieRequestUrl, SSORequestHeaders);
 
         String stdMajor = fetchMajor(cookieList);
-
-        addUser(sIdno);
 
         Map<String, Object> stdInfo = new HashMap<>();
         stdInfo.put("학부", stdMajor);
@@ -120,7 +121,8 @@ public class UsersService {
     //사용자 소속 확인
     private String fetchMajor(String cookieList) throws Exception {
 //        StringBuilder stdInfo = new StringBuilder();
-        String stdMajor = "";
+        String stdMajor = ""; //학부
+        String stdNo = ""; //학번
         HashMap<String, String> stdInfoRequestHeaders = new HashMap<>();
         stdInfoRequestHeaders.put("Cookie", cookieList);
 
@@ -168,6 +170,11 @@ public class UsersService {
                 if (dt.text().equals("소속")) {
                     stdMajor = strong.text();
                 }
+                if(dt.text().equals("학번")) {
+                    stdNo = strong.text();
+                }
+
+                addUser(stdNo,stdName); //파싱한 학번,이름 저장
 
             }
 
@@ -176,19 +183,27 @@ public class UsersService {
     }
 
     public TokenDto login(@NotNull LoginRequestDto loginRequestDto) {
-        String stdId = loginRequestDto.getstudentNo();
-        String accessToken = jwtProvider.generateAccessToken(stdId);
+        String stdNo = loginRequestDto.getstudentNo();
+        String accessToken = jwtProvider.generateAccessToken(stdNo);
         String refreshToken = jwtProvider.generateRefreshToken();
 
-        //refresh 토큰 정보 저장
-        RefreshToken refreshTokenDB = RefreshToken.builder()
-                .studentNo(loginRequestDto.getstudentNo())
-                .refreshToken(refreshToken)
-                .build();
+        //refresh token 을 db 에 저장
+        Optional<User> userOptional = Optional.ofNullable(userRepository.findByStudentNo(stdNo));
+        if(userOptional.isEmpty()){
+            throw new RuntimeException("user not found with studentNo :" + stdNo);
+        }
+        User user = userOptional.get();
 
-        refreshTokenRepository.save(refreshTokenDB);
-
-        //        ObjectMapper objectMapper = new ObjectMapper();
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+//
+//        //refresh 토큰 정보 저장
+//        RefreshToken refreshTokenDB = RefreshToken.builder()
+//                .studentNo(loginRequestDto.getstudentNo())
+//                .refreshToken(refreshToken)
+//                .build();
+//
+//        refreshTokenRepository.save(refreshTokenDB);
 
         return TokenDto.builder()
             .accessToken(accessToken)
@@ -207,36 +222,46 @@ public class UsersService {
         //access token 에서 인증 정보 가져오기
         Authentication authentication = jwtProvider.getAuthentication(tokenRequestDto.getAccessToken());
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String stdId = userDetails.getUsername();
+        String stdNo = userDetails.getUsername();
 
-        //db에서 refresh token 찾아옴
-        RefreshToken refreshToken = refreshTokenRepository.findById(stdId)
-                .orElseThrow(() -> new RuntimeException("로그아웃 된 사용자"));
+        User user = userRepository.findByStudentNo(stdNo);
+        if(user == null){
+            throw new RuntimeException("존재하지 않는 사용자");
+        }
 
-        //클라이언트가 보낸 refresh token 과 db에 저장되어 있던 refresh token 이 일치하는지 검사
-        if(!refreshToken.getRefreshToken().equals(tokenRequestDto.getRefreshToken())) {
-            throw new RuntimeException("refresh token 이 일치하지 않음");
+        if(user.getRefreshToken() == null){
+            throw new RuntimeException("로그아웃된 사용자");
+        }
+
+        if(!user.getRefreshToken().equals(tokenRequestDto.getRefreshToken())) {
+            throw new RuntimeException("refresh token이 일치하지 않음");
         }
 
         //일치한다면 새로운 access token 생성
-        String newAccessToken = jwtProvider.generateAccessToken(stdId);
+        String newAccessToken = jwtProvider.generateAccessToken(stdNo);
 
         TokenDto tokenDto = TokenDto.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(String.valueOf(refreshToken))
-                .studentNo(stdId)
+                .refreshToken(String.valueOf(user.getRefreshToken()))
+                .studentNo(stdNo)
                 .build();
 
         return tokenDto;
     }
 
     //로그아웃
-    public boolean logout(String stdId){
-        boolean exists = refreshTokenRepository.existsById(stdId);
+    public boolean logout(String stdNo){
+        Optional<User> userOptional = Optional.ofNullable(userRepository.findByStudentNo(stdNo))
+                .filter(user->user.getRefreshToken() != null);
 
-        if(exists){
-            refreshTokenRepository.deleteById(stdId);
-            return !refreshTokenRepository.existsById(stdId);
+        if(userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setRefreshToken(null);
+            userRepository.save(user);
+
+            //refresh token 이 정상적으로 삭제되었는지 확인
+            Optional<User> updatedUser = Optional.ofNullable(userRepository.findByStudentNo(stdNo));
+            return updatedUser.map(u->u.getRefreshToken() == null).orElse(false);
         }
         else{
             return false;

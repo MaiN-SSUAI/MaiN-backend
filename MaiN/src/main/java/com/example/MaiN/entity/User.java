@@ -30,4 +30,5 @@ public class User {
     public User(String studentNo) {
         this.studentNo = studentNo;
     }
+
 }

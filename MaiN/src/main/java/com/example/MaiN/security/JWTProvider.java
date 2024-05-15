@@ -51,13 +51,13 @@ public class JWTProvider {
 
     //access token 생성
     @NotNull
-    public String generateAccessToken(@NotNull String stdId){
+    public String generateAccessToken(@NotNull String stdNo){
 
         Date now = new Date();
         Date expiration = new Date(now.getTime() + this.JWT_EXPIRATION);
 
         return Jwts.builder()
-                .claim("studentNo",stdId)
+                .claim("studentNo",stdNo)
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(this.getSigningKey())

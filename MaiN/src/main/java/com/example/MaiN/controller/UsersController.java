@@ -24,23 +24,17 @@ public class UsersController {
     @GetMapping("/all")
     public Iterable<User> list() { return usersService.findAllUsers(); }
 
-    //학번 -> db 에 저장
-//    @PostMapping("/add")
-//    public String postUserInfo(@RequestBody UserDto UserDto) {
-//        return usersService.addUser(UserDto);
-//    }
-
     @PostMapping("/login")
     @Operation(summary = "accessToken, refreshToken,학번 응답 받기")
     public ResponseEntity<?> login(@RequestBody UsaintRequestDto usaintRequestDto) throws Exception {
         Map<String,Object> stdInfo = usersService.usaintAuthService(usaintRequestDto);
 
         String stdMajor = (String) stdInfo.get("학부");
-        String stdId = (String) stdInfo.get("학번");
+        String stdNo = (String) stdInfo.get("학번");
 
         if(stdMajor.equals("AI융합학부")) {
             LoginRequestDto loginRequestDto = new LoginRequestDto();
-            loginRequestDto.setstudentNo(stdId);
+            loginRequestDto.setstudentNo(stdNo);
             return ResponseEntity.ok().body(usersService.login(loginRequestDto));
         }
         else{
@@ -60,8 +54,9 @@ public class UsersController {
     @Operation(summary = "로그아웃")
     public ResponseEntity<?> logout(@RequestBody UserDto userDto){
         String stdNo = userDto.getStudentNo();
+        System.out.println("학번 : " + stdNo);
         boolean result = usersService.logout(stdNo);
         if(result) return ResponseEntity.ok().body( "로그아웃 성공");
-        else return ResponseEntity.badRequest().body("이미 로그아웃 된 사용자");
+        else return ResponseEntity.badRequest().body("이미 로그아웃 되었거나 존재하지 않는 사용자");
     }
 }
