@@ -264,7 +264,7 @@ public class CalendarService {
     }
 
     // 예약 추가하기 (주최자)
-    public String addOrganizeEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addOrganizeEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr, String purpose) throws Exception {
         Calendar service = getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
@@ -289,7 +289,7 @@ public class CalendarService {
     }
 
     // 예약 추가하기 (주최자 제외 팀원들)
-    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr, String purpose) throws Exception {
         Calendar service = getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);

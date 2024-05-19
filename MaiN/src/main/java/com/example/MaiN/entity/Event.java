@@ -35,12 +35,15 @@ public class Event {
     @Column(name = "event_id")
     private String eventId;
 
-    public Event(String location, String studentId, String startTime, String endTime, String eventId) {
+    private String purpose;
+
+    public Event(String location, String studentId, String startTime, String endTime, String eventId, String purpose) {
         this.location = location;
         this.studentId = studentId;
         this.startTime = startTime;
         this.endTime = endTime;
         this.eventId = eventId;
+        this.purpose = purpose;
     }
 
     public void patch(Event event) {
@@ -54,6 +57,8 @@ public class Event {
             this.endTime = event.endTime;
         if (event.eventId != null)
             this.eventId = event.eventId;
+        if (event.purpose != null)
+            this.purpose = event.purpose;
     }
 
 

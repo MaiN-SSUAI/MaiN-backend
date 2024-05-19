@@ -54,12 +54,12 @@ public class CalendarController {
         for (int i = 0; i<studentIds.size(); i++) {
             String studentId = studentIds.get(i);
             if (i == 0) {
-                String eventId = calendarService.addOrganizeEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                String eventId = calendarService.addOrganizeEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(), eventDto.getPurpose());
                 eventDto.setEventId(eventId);
                 Event event = eventDto.toEntity(studentId);
                 Event saved = reservRepository.save(event);
             } else {
-                String eventId = calendarService.addEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                String eventId = calendarService.addEvent(eventDto.getLocation(), studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(), eventDto.getPurpose());
                 eventDto.setEventId(eventId);
                 Event event = eventDto.toEntity(studentId);
                 Event saved = reservRepository.save(event);

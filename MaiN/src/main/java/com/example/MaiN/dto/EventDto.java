@@ -21,6 +21,7 @@ public class EventDto {
     private String endDateTimeStr;
     @Setter
     private String eventId;
+    private String purpose;
 
     // DTO객체를 Entity객체로 변환하는 메서드
     public Event toEntity(String studentId){
@@ -29,7 +30,8 @@ public class EventDto {
                 studentId,
                 this.startDateTimeStr,
                 this.endDateTimeStr,
-                this.eventId
+                this.eventId,
+                this.purpose
         );
     }
 }
