@@ -3,9 +3,9 @@ package com.example.MaiN.service;
 import com.example.MaiN.dto.AiNotiDto;
 import com.example.MaiN.entity.AiNoti;
 import com.example.MaiN.entity.AiNotiFavor;
-import com.example.MaiN.entity.Users;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.AiNotiFavorRepository;
-import com.example.MaiN.repository.UsersRepository;
+import com.example.MaiN.repository.UserRepository;
 import com.example.MaiN.repository.AiNotiRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -27,10 +27,10 @@ public class AiNotiFavorService {
     private AiNotiRepository aiNotiRepository;
 
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository usersRepository;
 
     public AiNotiFavor addFavorite(String studentId, int aiNotiId) {
-        Users student = usersRepository.findById(studentId)
+        User student = usersRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + studentId));
 
         AiNoti aiNoti = aiNotiRepository.findById(aiNotiId)
@@ -44,7 +44,7 @@ public class AiNotiFavorService {
 
 
     public void deleteFavorite(String studentId, int aiNotiId) {
-        Users student = usersRepository.findById(studentId)
+        User student = usersRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         aiNotiFavoritesRepository.findByStudentIdAndAiNotiId(student, aiNotiId)
                 .ifPresent(aiNotiFavoritesRepository::delete);

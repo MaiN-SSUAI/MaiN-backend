@@ -45,6 +45,11 @@ dependencies {
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:2.12.3'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
 	implementation 'com.squareup.okhttp3:okhttp:4.9.0'
+	implementation 'io.jsonwebtoken:jjwt:0.12.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 }
 
 tasks.named('test') {

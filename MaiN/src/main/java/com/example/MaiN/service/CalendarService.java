@@ -1,29 +1,23 @@
 package com.example.MaiN.service;
 
 
-import com.example.MaiN.dto.EventDto;
-import com.example.MaiN.dto.UsersDto;
-import com.example.MaiN.entity.Users;
+import com.example.MaiN.dto.UserDto;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.ReservRepository;
-import com.example.MaiN.repository.UsersRepository;
-import com.google.j2objc.annotations.AutoreleasePool;
+import com.example.MaiN.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 import com.example.MaiN.controller.CalendarController;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -57,7 +51,7 @@ public class CalendarService {
     @Autowired
     private ReservRepository reservRepository;
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository userRepository;
 
     //API사용을 위한 인증 정보를 가져오는 메서드
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
@@ -313,14 +307,14 @@ public class CalendarService {
         return event.getId();
     }
 
-    public ResponseEntity<?> checkUser(UsersDto usersDto, LocalDate date) {
+    public ResponseEntity<?> checkUser(UserDto userDto, LocalDate date) {
 
-        Optional<Users> checkUser = usersRepository.findByStudentId(usersDto.getStudentId());
+        Optional<User> checkUser = Optional.ofNullable(userRepository.findByStudentId(userDto.getStudentId()));
         if(!checkUser.isPresent()){
             return ResponseEntity.ok("uninformed/valid user");
         }
         checkEventsPerMonth(date);
-        checkEventsPerWeek(usersDto.getStudentId(), date);
+        checkEventsPerWeek(userDto.getStudentId(), date);
         return ResponseEntity.ok("informed/valid user");
     }
 

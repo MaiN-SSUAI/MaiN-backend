@@ -3,9 +3,9 @@ package com.example.MaiN.service;
 import com.example.MaiN.dto.SsuCatchNotiDto;
 import com.example.MaiN.entity.SsuCatchNoti;
 import com.example.MaiN.entity.SsuCatchNotiFavor;
-import com.example.MaiN.entity.Users;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.SsuCatchNotiFavorRepository;
-import com.example.MaiN.repository.UsersRepository;
+import com.example.MaiN.repository.UserRepository;
 import com.example.MaiN.repository.SsuCatchNotiRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -27,10 +27,10 @@ public class SsuCatchNotiFavorService {
     private SsuCatchNotiRepository ssuCatchNotiRepository;
 
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository userRepository;
 
     public SsuCatchNotiFavor addFavorite(String studentId, int ssuCatchNotiId) {
-        Users student = usersRepository.findById(studentId)
+        User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + studentId));
 
         SsuCatchNoti ssuCatchNoti = ssuCatchNotiRepository.findById(ssuCatchNotiId)
@@ -44,7 +44,7 @@ public class SsuCatchNotiFavorService {
 
 
     public void deleteFavorite(String studentId, int ssuCatchNotiId) {
-        Users student = usersRepository.findById(studentId)
+        User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         ssuCatchNotiFavoritesRepository.findByStudentIdAndSsuCatchNotiId(student, ssuCatchNotiId)
                 .ifPresent(ssuCatchNotiFavoritesRepository::delete);

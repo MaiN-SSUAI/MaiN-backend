@@ -18,14 +18,14 @@ public class FunsysNotiFavor {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id")
-    private Users studentId;
+    private User studentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "funsys_noti_id")
     private FunsysNoti funsysNoti;
 
     @Builder
-    public FunsysNotiFavor(Users studentId) {
+    public FunsysNotiFavor(User studentId) {
         this.studentId = studentId;
     }
 

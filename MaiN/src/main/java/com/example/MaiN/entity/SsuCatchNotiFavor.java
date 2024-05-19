@@ -18,14 +18,14 @@ public class SsuCatchNotiFavor {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", referencedColumnName = "student_id")
-    private Users studentId;
+    private User studentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ssucatch_noti_id")
     private SsuCatchNoti ssuCatchNoti;
 
     @Builder
-    public SsuCatchNotiFavor(Users studentId) {
+    public SsuCatchNotiFavor(User studentId) {
         this.studentId = studentId;
     }
 
