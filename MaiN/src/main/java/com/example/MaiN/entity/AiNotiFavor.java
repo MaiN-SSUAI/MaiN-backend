@@ -16,12 +16,10 @@ public class AiNotiFavor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id; // 고유한 기본 키
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_no", referencedColumnName = "student_no")
+    @JoinColumn(name="student_no")
     private User studentNo;
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ai_noti_id")
     private AiNoti aiNoti;
