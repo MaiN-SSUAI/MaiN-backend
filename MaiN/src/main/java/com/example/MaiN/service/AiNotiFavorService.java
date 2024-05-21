@@ -30,7 +30,7 @@ public class AiNotiFavorService {
     private UserRepository userRepository;
 
     public AiNotiFavor addFavorite(String studentNo, int aiNotiId) {
-        User student = userRepository.findById(studentNo)
+        User student = userRepository.findByNo(studentNo)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + studentNo));
 
         AiNoti aiNoti = aiNotiRepository.findById(aiNotiId)
@@ -44,7 +44,7 @@ public class AiNotiFavorService {
 
 
     public void deleteFavorite(String studentNo, int aiNotiId) {
-        User student = userRepository.findById(studentNo)
+        User student = userRepository.findByNo(studentNo)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         aiNotiFavoritesRepository.findBystudentNoAndAiNotiId(student, aiNotiId)
                 .ifPresent(aiNotiFavoritesRepository::delete);
