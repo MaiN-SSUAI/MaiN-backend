@@ -9,6 +9,7 @@ public class FunsysNotiDto {
     private LocalDate startDate;
     private LocalDate endDate;
     private boolean favorites;
+
     public FunsysNotiDto(int id, String title, String link, LocalDate startDate, LocalDate endDate, boolean favorites) {
         this.id = Math.toIntExact(id);
         this.title = title;

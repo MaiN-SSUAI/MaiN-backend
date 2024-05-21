@@ -30,7 +30,7 @@ public class FunsysNotiFavorService {
     private UserRepository userRepository;
 
     public FunsysNotiFavor addFavorite(String studentNo, int funsysNotiId) {
-        User student = userRepository.findById(studentNo)
+        User student = userRepository.findByNo(studentNo)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + studentNo));
 
         FunsysNoti funsysNoti = funsysNotiRepository.findById(funsysNotiId)
@@ -44,7 +44,7 @@ public class FunsysNotiFavorService {
 
 
     public void deleteFavorite(String studentNo, int funsysNotiId) {
-        User student = userRepository.findById(studentNo)
+        User student = userRepository.findByNo(studentNo)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         funsysNotiFavoritesRepository.findBystudentNoAndFunsysNotiId(student, funsysNotiId)
                 .ifPresent(funsysNotiFavoritesRepository::delete);
