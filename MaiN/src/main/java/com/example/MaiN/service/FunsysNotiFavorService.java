@@ -1,6 +1,7 @@
 package com.example.MaiN.service;
 
 import com.example.MaiN.dto.FunsysNotiDto;
+import com.example.MaiN.dto.FunsysNotiFavorDto;
 import com.example.MaiN.entity.FunsysNoti;
 import com.example.MaiN.entity.FunsysNotiFavor;
 import com.example.MaiN.entity.User;
@@ -10,8 +11,11 @@ import com.example.MaiN.repository.FunsysNotiRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -29,16 +33,18 @@ public class FunsysNotiFavorService {
     @Autowired
     private UserRepository userRepository;
 
-    public FunsysNotiFavor addFavorite(String studentNo, int funsysNotiId) {
-        User student = userRepository.findByNo(studentNo)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + studentNo));
+    @Transactional
+    public FunsysNotiFavor addFavorite(FunsysNotiFavorDto dto) {
+        User student = userRepository.findByNo(dto.getStudentNo())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getStudentNo()));
 
-        FunsysNoti funsysNoti = funsysNotiRepository.findById(funsysNotiId)
-                .orElseThrow(() -> new RuntimeException("funsysNoti not found with id: " + funsysNotiId));
+        FunsysNoti funsysNoti = funsysNotiRepository.findById(dto.getFunsysNotiId())
+                .orElseThrow(() -> new RuntimeException("funsysNoti not found with id: " + dto.getFunsysNotiId()));
 
         FunsysNotiFavor favorite = new FunsysNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setFunsysNoti(funsysNoti); // funsys_noti 엔티티 설정
+
         return funsysNotiFavoritesRepository.save(favorite);
     }
 

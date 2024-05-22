@@ -1,6 +1,7 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.FunsysNotiDto;
+import com.example.MaiN.dto.FunsysNotiFavorDto;
 import com.example.MaiN.entity.FunsysNotiFavor;
 import com.example.MaiN.service.FunsysNotiFavorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,11 +20,11 @@ public class FunsysNotiFavorController {
     @Autowired
     private FunsysNotiFavorService funsysNotiFavorService;
 
-    @PostMapping("/add/{studentNo}/{funsysNotiId}")
+    @PostMapping("/add")
     @Operation(summary = "북마크 추가")
-    public ResponseEntity<FunsysNotiFavor> addFavorite(@PathVariable String studentNo, @PathVariable int funsysNotiId) {
-        FunsysNotiFavor favorite = funsysNotiFavorService.addFavorite(studentNo, funsysNotiId);
-        return ResponseEntity.ok(favorite);
+    public ResponseEntity<FunsysNotiFavor> addFavorite(@RequestBody FunsysNotiFavorDto dto) {
+        FunsysNotiFavor favorite = funsysNotiFavorService.addFavorite(dto);
+        return ResponseEntity.ok().build();
     }
     @DeleteMapping("delete/{studentNo}/{funsysNotiId}")
     @Operation(summary = "북마크 삭제")

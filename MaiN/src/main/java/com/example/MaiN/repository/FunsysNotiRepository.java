@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,4 +20,7 @@ public interface FunsysNotiRepository extends PagingAndSortingRepository<FunsysN
             "CASE WHEN (COUNT(fav) > 0) THEN true ELSE false END) " +
             "FROM FunsysNoti f LEFT JOIN f.favoritesSet fav WHERE f.id = :id GROUP BY f.id")
     Optional<FunsysNotiDto> findDtoById(int id);
+
+    @Query(value = "SELECT f FROM FunsysNoti f LEFT JOIN FETCH f.user WHERE f.id = :funsysNotiId", nativeQuery = true)
+    Optional<FunsysNoti> findFunsysNotiWithUserById(@Param("funsysNotiId") int funsysNotiId);
 }
