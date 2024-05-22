@@ -20,7 +20,7 @@ public class AiNotiService {
     }
 
     public List<AiNotiDto> listAll(){
-        return aiNotiRepository.findAllProjectedBy(Sort.by(Sort.Direction.DESC,"startDate"));
+        return aiNotiRepository.findAllProjectedBy(Sort.by(Sort.Direction.DESC,"date"));
     }
 
     public Optional<AiNotiDto> getNotiById(int id) {
