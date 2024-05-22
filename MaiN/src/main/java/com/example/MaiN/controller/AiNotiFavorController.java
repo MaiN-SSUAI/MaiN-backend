@@ -1,6 +1,7 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.AiNotiDto;
+import com.example.MaiN.dto.AiNotiFavorDto;
 import com.example.MaiN.entity.AiNotiFavor;
 import com.example.MaiN.service.AiNotiFavorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,11 +20,11 @@ public class AiNotiFavorController {
     @Autowired
     private AiNotiFavorService aiNotiFavorService;
 
-    @PostMapping("/add/{studentNo}/{aiNotiId}")
+    @PostMapping("/add")
     @Operation(summary="북마크 추가")
-    public ResponseEntity<AiNotiFavor> addFavorite(@PathVariable String studentNo, @PathVariable int aiNotiId) {
-        AiNotiFavor favorite = aiNotiFavorService.addFavorite(studentNo, aiNotiId);
-        return ResponseEntity.ok(favorite);
+    public ResponseEntity<AiNotiFavor> addFavorite(@RequestBody AiNotiFavorDto aiNotiFavorDto) {
+        AiNotiFavor favorite = aiNotiFavorService.addFavorite(aiNotiFavorDto);
+        return ResponseEntity.ok().build();
     }
     @DeleteMapping("delete/{studentNo}/{aiNotiId}")
     @Operation(summary="북마크 삭제")

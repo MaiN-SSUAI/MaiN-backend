@@ -1,6 +1,7 @@
 package com.example.MaiN.service;
 
 import com.example.MaiN.dto.AiNotiDto;
+import com.example.MaiN.dto.AiNotiFavorDto;
 import com.example.MaiN.entity.AiNoti;
 import com.example.MaiN.entity.AiNotiFavor;
 import com.example.MaiN.entity.User;
@@ -12,6 +13,8 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -29,12 +32,13 @@ public class AiNotiFavorService {
     @Autowired
     private UserRepository userRepository;
 
-    public AiNotiFavor addFavorite(String studentNo, int aiNotiId) {
-        User student = userRepository.findByNo(studentNo)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + studentNo));
+    @Transactional
+    public AiNotiFavor addFavorite(AiNotiFavorDto aiNotiFavorDto) {
+        User student = userRepository.findByNo(aiNotiFavorDto.getStudentNo())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + aiNotiFavorDto.getStudentNo()));
 
-        AiNoti aiNoti = aiNotiRepository.findById(aiNotiId)
-                .orElseThrow(() -> new RuntimeException("ai_noti not found with id: " + aiNotiId));
+        AiNoti aiNoti = aiNotiRepository.findById(aiNotiFavorDto.getAiNotiId())
+                .orElseThrow(() -> new RuntimeException("ai_noti not found with id: " + aiNotiFavorDto.getAiNotiId()));
 
         AiNotiFavor favorite = new AiNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
