@@ -45,10 +45,10 @@ public class SsuCatchNotiFavorService {
     }
 
 
-    public void deleteFavorite(String studentNo, int ssuCatchNotiId) {
-        User student = userRepository.findByNo(studentNo)
+    public void deleteFavorite(SsuCatchNotiFavorDto ssuCatchNotiFavorDto) {
+        User student = userRepository.findByNo(ssuCatchNotiFavorDto.getStudentNo())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        ssuCatchNotiFavoritesRepository.findBystudentNoAndSsuCatchNotiId(student, ssuCatchNotiId)
+        ssuCatchNotiFavoritesRepository.findBystudentNoAndSsuCatchNotiId(student, ssuCatchNotiFavorDto.getSsuCatchNotiId())
                 .ifPresent(ssuCatchNotiFavoritesRepository::delete);
     }
 

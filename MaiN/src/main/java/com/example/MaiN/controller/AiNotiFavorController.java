@@ -26,10 +26,10 @@ public class AiNotiFavorController {
         AiNotiFavor favorite = aiNotiFavorService.addFavorite(aiNotiFavorDto);
         return ResponseEntity.ok().build();
     }
-    @DeleteMapping("delete/{studentNo}/{aiNotiId}")
+    @DeleteMapping("/delete")
     @Operation(summary="북마크 삭제")
-    public ResponseEntity<?> deleteFavorite(@PathVariable String studentNo, @PathVariable int aiNotiId) {
-        aiNotiFavorService.deleteFavorite(studentNo, aiNotiId);
+    public ResponseEntity<?> deleteFavorite(@RequestBody AiNotiFavorDto aiNotiFavorDto) {
+        aiNotiFavorService.deleteFavorite(aiNotiFavorDto);
         return ResponseEntity.ok().build();
     }
 
