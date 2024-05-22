@@ -1,6 +1,7 @@
 package com.example.MaiN.service;
 
 import com.example.MaiN.dto.SsuCatchNotiDto;
+import com.example.MaiN.dto.SsuCatchNotiFavorDto;
 import com.example.MaiN.entity.SsuCatchNoti;
 import com.example.MaiN.entity.SsuCatchNotiFavor;
 import com.example.MaiN.entity.User;
@@ -29,16 +30,17 @@ public class SsuCatchNotiFavorService {
     @Autowired
     private UserRepository userRepository;
 
-    public SsuCatchNotiFavor addFavorite(String studentNo, int ssuCatchNotiId) {
-        User student = userRepository.findByNo(studentNo)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + studentNo));
+    public SsuCatchNotiFavor addFavorite(SsuCatchNotiFavorDto dto) {
+        User student = userRepository.findByNo(dto.getStudentNo())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getStudentNo()));
 
-        SsuCatchNoti ssuCatchNoti = ssuCatchNotiRepository.findById(ssuCatchNotiId)
-                .orElseThrow(() -> new RuntimeException("SsuCatchNoti not found with id: " + ssuCatchNotiId));
+        SsuCatchNoti ssuCatchNoti = ssuCatchNotiRepository.findById(dto.getSsuCatchNotiId())
+                .orElseThrow(() -> new RuntimeException("SsuCatchNoti not found with id: " + dto.getSsuCatchNotiId()));
 
         SsuCatchNotiFavor favorite = new SsuCatchNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setSsuCatchNoti(ssuCatchNoti); // ssucatch 엔티티 설정
+
         return ssuCatchNotiFavoritesRepository.save(favorite);
     }
 
