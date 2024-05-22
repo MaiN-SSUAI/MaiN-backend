@@ -26,10 +26,10 @@ public class FunsysNotiFavorController {
         FunsysNotiFavor favorite = funsysNotiFavorService.addFavorite(dto);
         return ResponseEntity.ok().build();
     }
-    @DeleteMapping("delete/{studentNo}/{funsysNotiId}")
+    @DeleteMapping("/delete")
     @Operation(summary = "북마크 삭제")
-    public ResponseEntity<?> deleteFavorite(@PathVariable String studentNo, @PathVariable int funsysNotiId) {
-        funsysNotiFavorService.deleteFavorite(studentNo, funsysNotiId);
+    public ResponseEntity<?> deleteFavorite(@RequestBody FunsysNotiFavorDto dto) {
+        funsysNotiFavorService.deleteFavorite(dto);
         return ResponseEntity.ok().build();
     }
 

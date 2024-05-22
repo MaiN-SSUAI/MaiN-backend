@@ -49,10 +49,10 @@ public class FunsysNotiFavorService {
     }
 
 
-    public void deleteFavorite(String studentNo, int funsysNotiId) {
-        User student = userRepository.findByNo(studentNo)
+    public void deleteFavorite(FunsysNotiFavorDto dto) {
+        User student = userRepository.findByNo(dto.getStudentNo())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        funsysNotiFavoritesRepository.findBystudentNoAndFunsysNotiId(student, funsysNotiId)
+        funsysNotiFavoritesRepository.findBystudentNoAndFunsysNotiId(student, dto.getFunsysNotiId())
                 .ifPresent(funsysNotiFavoritesRepository::delete);
     }
 
