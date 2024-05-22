@@ -26,10 +26,10 @@ public class SsuCatchNotiFavorController {
         SsuCatchNotiFavor favorite = ssuCatchNotiFavorService.addFavorite(dto);
         return ResponseEntity.ok().build();
     }
-    @DeleteMapping("delete/{studentNo}/{ssuCatchNotiId}")
+    @DeleteMapping("/delete")
     @Operation(summary = "슈캐치 북마크 삭제")
-    public ResponseEntity<?> deleteFavorite(@PathVariable String studentNo, @PathVariable int ssuCatchNotiId) {
-        ssuCatchNotiFavorService.deleteFavorite(studentNo, ssuCatchNotiId);
+    public ResponseEntity<?> deleteFavorite(@RequestBody SsuCatchNotiFavorDto ssuCatchNotiFavorDto) {
+        ssuCatchNotiFavorService.deleteFavorite(ssuCatchNotiFavorDto);
         return ResponseEntity.ok().build();
     }
 
