@@ -1,7 +1,7 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.EventDto;
-import com.example.MaiN.dto.UsersDto;
+import com.example.MaiN.dto.UserDto;
 import com.example.MaiN.entity.Event;
 import com.example.MaiN.service.CalendarService;
 import com.example.MaiN.repository.ReservRepository;
@@ -43,8 +43,8 @@ public class CalendarController {
 
     @GetMapping("/check/user")
     @Operation(summary = "세미나실 사용자 등록")
-    public ResponseEntity<?> addUsers(@RequestBody UsersDto usersDto, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        return calendarService.checkUser(usersDto, date);
+    public ResponseEntity<?> addUsers(@RequestBody UserDto UserDto, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        return calendarService.checkUser(UserDto, date);
     }
     //일정 추가
     @PostMapping("/add/event")
@@ -88,7 +88,6 @@ public class CalendarController {
         target.patch(event);
         Event updated = reservRepository.save(target);
         return calendarService.updateCalendarEvents(eventDto.getLocation(), eventDto.getStudentIds(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(),eventId);
-
     }
 
 }

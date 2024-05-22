@@ -2,10 +2,10 @@ package com.example.MaiN.service;
 
 
 import com.example.MaiN.dto.EventDto;
-import com.example.MaiN.dto.UsersDto;
-import com.example.MaiN.entity.Users;
+import com.example.MaiN.dto.UserDto;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.ReservRepository;
-import com.example.MaiN.repository.UsersRepository;
+import com.example.MaiN.repository.UserRepository;
 import com.google.j2objc.annotations.AutoreleasePool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -57,7 +57,7 @@ public class CalendarService {
     @Autowired
     private ReservRepository reservRepository;
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository UserRepository;
 
     //API사용을 위한 인증 정보를 가져오는 메서드
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
@@ -211,9 +211,7 @@ public class CalendarService {
         }
     }
 
-
     // 해당 주에 해당하는 예약만 필터링
-
     private void checkEventsPerWeek(String studentId, LocalDate date){
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
@@ -313,14 +311,16 @@ public class CalendarService {
         return event.getId();
     }
 
-    public ResponseEntity<?> checkUser(UsersDto usersDto, LocalDate date) {
+    public ResponseEntity<?> checkUser(UserDto UserDto, LocalDate date) {
 
-        Optional<Users> checkUser = usersRepository.findByStudentId(usersDto.getStudentId());
+        Optional<User> checkUser = Optional.ofNullable(UserRepository.findByStudentNo(UserDto.getStudentNo()));
+
         if(!checkUser.isPresent()){
             return ResponseEntity.ok("uninformed/valid user");
         }
         checkEventsPerMonth(date);
-        checkEventsPerWeek(usersDto.getStudentId(), date);
+        checkEventsPerWeek(UserDto.getStudentNo(), date);
+
         return ResponseEntity.ok("informed/valid user");
     }
 
@@ -330,7 +330,6 @@ public class CalendarService {
         service.events().delete(CALENDAR_ID, eventId).execute();
         return "Event deleted successfully";
     }
-
 
     public String updateCalendarEvents(String location,List<String> studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
