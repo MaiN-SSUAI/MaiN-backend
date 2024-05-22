@@ -1,6 +1,7 @@
 package com.example.MaiN.dto;
 
 import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.EventAssign;
 import com.google.api.client.util.DateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,21 +16,23 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Getter
 public class EventDto {
-    private String location;
+    private int id;
+    private String eventId;
+    private int userId;
     private List<String> studentIds;
+    private String purpose;
     private String startDateTimeStr;
     private String endDateTimeStr;
-    @Setter
-    private String eventId;
+    private int reservationId;
 
     // DTO객체를 Entity객체로 변환하는 메서드
-    public Event toEntity(String studentId) {
+    public Event toEntity(int userId){
         return new Event(
-                this.location,
-                studentId,
+                this.id,
+                userId,
+                this.purpose,
                 this.startDateTimeStr,
-                this.endDateTimeStr,
-                this.eventId
+                this.endDateTimeStr
         );
     }
 }
