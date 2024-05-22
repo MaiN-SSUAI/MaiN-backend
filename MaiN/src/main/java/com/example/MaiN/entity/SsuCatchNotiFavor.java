@@ -17,9 +17,10 @@ public class SsuCatchNotiFavor {
     private int id; // 고유한 기본 키
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_no", referencedColumnName = "student_no")
+    @JoinColumn(name = "student_no")
     private User studentNo;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ssucatch_noti_id")
     private SsuCatchNoti ssuCatchNoti;
@@ -29,7 +30,4 @@ public class SsuCatchNotiFavor {
         this.studentNo = studentNo;
     }
 
-    public void setSsuCatchNoti(SsuCatchNoti ssuCatchNoti) {
-        this.ssuCatchNoti = ssuCatchNoti;
-    }
 }

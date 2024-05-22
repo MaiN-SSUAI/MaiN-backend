@@ -1,6 +1,5 @@
 package com.example.MaiN.repository;
 import com.example.MaiN.dto.AiNotiDto;
-import com.example.MaiN.dto.FunsysNotiDto;
 import com.example.MaiN.entity.AiNoti;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Query;
