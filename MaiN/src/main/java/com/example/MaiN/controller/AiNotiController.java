@@ -31,6 +31,7 @@ public class AiNotiController {
     public Iterable<AiNoti> list() {
         return aiNotiRepository.findAll(Sort.by(Sort.Direction.DESC, "date"));
     }
+    
     @GetMapping("/{id}")
     public Optional<AiNoti> getById(@PathVariable int id) {
         return aiNotiRepository.findById(id);
