@@ -43,6 +43,20 @@ jobs:
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     # - name: Setup Gradle
     #   uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+
+    - name: Create env file
+      env:
+        DIR: src/main/resources
+        APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
+        APPLICATION_YML: ${{ secrets.APPLICATION_YML }}
+        CREDENTIALS: ${{ secrets.CREDENTIALS }}
+        RESERVE_CALENDAR: ${{ secrets.RESERVE_CALENDAR }}
+      run: |
+        echo $APPLICATION_PROPERTIES | base64 --decode > $DIR/application.properties
+        echo $APPLICATION_YML | base64 --decode > $DIR/application.yml
+        echo $CREDENTIALS | base64 --decode > $DIR/credentials.json
+        echo $RESERVE_CALENDAR | base64 --decode > $DIR/reservecalendar-410115-141fd088c697.json
+      working-directory: ${{ env.working-directory }}
       
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
