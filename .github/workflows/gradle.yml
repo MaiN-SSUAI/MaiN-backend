@@ -52,6 +52,7 @@ jobs:
         CREDENTIALS: ${{ secrets.CREDENTIALS }}
         RESERVE_CALENDAR: ${{ secrets.RESERVE_CALENDAR }}
       run: |
+        mkdir -p $DIR
         echo $APPLICATION_PROPERTIES | base64 --decode > $DIR/application.properties
         echo $APPLICATION_YML | base64 --decode > $DIR/application.yml
         echo $CREDENTIALS | base64 --decode > $DIR/credentials.json
