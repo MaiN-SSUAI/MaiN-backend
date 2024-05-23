@@ -2,13 +2,27 @@ package com.example.MaiN.dto;
 
 import com.example.MaiN.entity.Event;
 import com.example.MaiN.entity.EventAssign;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class EventAssignDto {
-    private String reservId;
+    private int reservId;
     private int userId;
     private String eventId;
 
-    // DTO객체를 Entity객체로 변환하는 메서드
+    public EventAssign toEntity() {
+        return new EventAssign(
+                this.reservId,
+                this.userId,
+                this.eventId
+        );
+    }
 }

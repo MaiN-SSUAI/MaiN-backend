@@ -1,5 +1,6 @@
 package com.example.MaiN.controller;
 
+import com.example.MaiN.dto.EventAssignDto;
 import com.example.MaiN.dto.EventDto;
 import com.example.MaiN.dto.UserDto;
 import com.example.MaiN.entity.Event;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @Tag(name="Calendar-Controller",description = "세미나실 예약 관련 API")
@@ -65,12 +67,14 @@ public class CalendarController {
                 Event event = eventDto.toEntity(userId);
                 Event saved = reservRepository.save(event);
                 reservId = saved.getId();
-                EventAssign eventOther = toEntity(reservId, eventId, userId);
+                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId);
+                EventAssign eventOther = eventAssignDto.toEntity();
                 reservAssignRepository.save(eventOther);
             }
             else {
                 String eventId = calendarService.addEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-                EventAssign eventOther = toEntity(reservId, eventId, userId);
+                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId);
+                EventAssign eventOther = eventAssignDto.toEntity();
                 reservAssignRepository.save(eventOther);
             }
 
@@ -78,23 +82,27 @@ public class CalendarController {
         return "success";
     }
 
-    public EventAssign toEntity(int reservId, String eventId, int userId){
-        return new EventAssign(
-                reservId,
-                userId,
-                eventId
-        );
-    }
-
     //삭제
-    /*@DeleteMapping("/delete/{eventId}")
+    @DeleteMapping("/delete/{Id}")
     @Operation(summary = "예약 삭제")
-    public String delete(@PathVariable("eventId") String eventId) throws Exception {
-        Event target = reservRepository.findByEventId(eventId);
-
-        reservRepository.delete(target);
-        return calendarService.deleteCalendarEvents(eventId);
-    }*/
+    public String delete(@PathVariable("Id") int id) throws Exception {
+        List<EventAssign> eventAssignList = reservAssignRepository.findByReservId(id);
+        if (!eventAssignList.isEmpty()) {
+            for (EventAssign eventAssign : eventAssignList) {
+                String eventId = eventAssign.getEventId();
+                reservAssignRepository.delete(eventAssign);
+                calendarService.deleteCalendarEvents(eventId);
+            }
+            Optional<Event> target = reservRepository.findById(id);
+            if (target.isPresent()) {
+                Event event = target.get();
+                reservRepository.delete(event);
+            }
+            return "Events deleted successfully";
+        } else {
+            throw new Exception("EventAssign not found for id: " + id);
+        }
+    }
 
     //수정
     /*@PatchMapping("/patch/{eventId}")
@@ -105,7 +113,7 @@ public class CalendarController {
         Event target = reservRepository.findByEventId(eventId); //타깃 조회
         target.patch(event);
         Event updated = reservRepository.save(target);
-        return calendarService.updateCalendarEvents(eventDto.getLocation(), eventDto.getStudentIds(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(),eventId);
+        return calendarService.updateCalendarEvents(eventDto.getStudentIds(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(),eventId);
     }*/
 
 }

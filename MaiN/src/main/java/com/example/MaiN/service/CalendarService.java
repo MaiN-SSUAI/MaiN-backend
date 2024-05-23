@@ -3,8 +3,10 @@ package com.example.MaiN.service;
 
 import com.example.MaiN.dto.UserDto;
 import com.example.MaiN.entity.User;
+import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
+import com.example.MaiN.entity.EventAssign;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
@@ -52,6 +54,8 @@ public class CalendarService {
     private ReservRepository reservRepository;
     @Autowired
     private UserRepository UserRepository;
+    @Autowired
+    private ReservAssignRepository reservAssignRepository;
 
     //API사용을 위한 인증 정보를 가져오는 메서드
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
@@ -116,12 +120,13 @@ public class CalendarService {
         return Integer.toString(result);
     }
 
-    public Map<String, Object> toMap(List items, Event event, LocalDate date) {
+    public Map<String, Object> toMap(List items, Event event, LocalDate date, int reservId) {
         Map<String, Object> map = new HashMap<>();
         map.put("summary", event.getSummary());
         map.put("start", event.getStart().getDateTime().toString());
         map.put("end", event.getEnd().getDateTime().toString());
         map.put("eventId", event.getId());
+        map.put("reservId", reservId);
 
         DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
         DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
@@ -181,8 +186,17 @@ public class CalendarService {
         List<Event> eventsList = events.getItems();
 
         List<Map<String, Object>> eventsMapList = new ArrayList<>();
+
         for (Event event : eventsList) {
-            eventsMapList.add(toMap(eventsList, event, date));
+            EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
+            if (dbEvent != null) {
+                int reservId = dbEvent.getReservId();
+                eventsMapList.add(toMap(eventsList, event, date, reservId));
+            }
+            else {
+                int reservId = 0;
+                eventsMapList.add(toMap(eventsList, event, date, reservId));
+            }
         }
         return ResponseEntity.ok(eventsMapList);
     }
@@ -303,15 +317,14 @@ public class CalendarService {
             return ResponseEntity.ok("uninformed/valid user");
         }
         checkEventsPerMonth(date);
-        //checkEventsPerWeek(UserDto.getId(), date);
+        checkEventsPerWeek(UserDto.getId(), date);
         return ResponseEntity.ok("informed/valid user");
     }
 
-    public String deleteCalendarEvents(String eventId) throws Exception {
+    public void deleteCalendarEvents(String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
         service.events().delete(CALENDAR_ID, eventId).execute();
-        return "Event deleted successfully";
     }
 
     public String updateCalendarEvents(String location,List<String> studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
