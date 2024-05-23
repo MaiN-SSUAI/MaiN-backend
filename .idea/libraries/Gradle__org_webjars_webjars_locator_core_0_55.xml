@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: org.webjars:webjars-locator-core:0.55" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.webjars" artifactId="webjars-locator-core" version="0.55" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.webjars/webjars-locator-core/0.55/d9c819930f44c89af1a6a8af2db6364926f6be69/webjars-locator-core-0.55.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

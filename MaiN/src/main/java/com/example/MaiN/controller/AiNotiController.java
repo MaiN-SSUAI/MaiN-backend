@@ -1,39 +1,33 @@
 package com.example.MaiN.controller;
 
-import com.example.MaiN.entity.AiNoti;
-import com.example.MaiN.service.AiNotiFavorService;
-import com.example.MaiN.repository.AiNotiRepository;
+import com.example.MaiN.dto.AiNotiDto;
+import com.example.MaiN.service.AiNotiService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import java.util.Optional;
 @Getter
 @RestController
 @RequestMapping(value = "/ai_noti")
 public class AiNotiController {
 
-    @Autowired
-    private final AiNotiFavorService aiNotiFavorService;
+    private final AiNotiService aiNotiService;
 
-    private final AiNotiRepository aiNotiRepository;
-
-    @Autowired
-    public AiNotiController(AiNotiFavorService aiNotiFavorService, AiNotiRepository aiNotiRepository) {
-        this.aiNotiFavorService = aiNotiFavorService;
-        this.aiNotiRepository = aiNotiRepository;
+    public AiNotiController(AiNotiService aiNotiService) {
+        this.aiNotiService = aiNotiService;
     }
 
     @GetMapping("/all")
-    public Iterable<AiNoti> list() {
-        return aiNotiRepository.findAll(Sort.by(Sort.Direction.DESC, "date"));
+    @Operation(summary = "모든 글 불러오기")
+    public List<AiNotiDto> list(){
+        return aiNotiService.listAll();
     }
-    
-    @GetMapping("/{id}")
-    public Optional<AiNoti> getById(@PathVariable int id) {
-        return aiNotiRepository.findById(id);
+
+    @GetMapping("/noti")
+    @Operation(summary = "특정 글 불러오기")
+    public Optional<AiNotiDto> getById(@RequestParam("id") int id) {
+        return aiNotiService.getNotiById(id);
     }
 }

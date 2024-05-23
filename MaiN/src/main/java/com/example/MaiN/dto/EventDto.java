@@ -23,7 +23,7 @@ public class EventDto {
     private String eventId;
 
     // DTO객체를 Entity객체로 변환하는 메서드
-    public Event toEntity(String studentId){
+    public Event toEntity(String studentId) {
         return new Event(
                 this.location,
                 studentId,

@@ -1,6 +1,7 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.AiNotiDto;
+import com.example.MaiN.dto.AiNotiFavorDto;
 import com.example.MaiN.entity.AiNotiFavor;
 import com.example.MaiN.service.AiNotiFavorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,23 +20,23 @@ public class AiNotiFavorController {
     @Autowired
     private AiNotiFavorService aiNotiFavorService;
 
-    @PostMapping("/add/{studentId}/{aiNotiId}")
+    @PostMapping("/add")
     @Operation(summary="북마크 추가")
-    public ResponseEntity<AiNotiFavor> addFavorite(@PathVariable String studentId, @PathVariable int aiNotiId) {
-        AiNotiFavor favorite = aiNotiFavorService.addFavorite(studentId, aiNotiId);
-        return ResponseEntity.ok(favorite);
+    public ResponseEntity<AiNotiFavor> addFavorite(@RequestBody AiNotiFavorDto aiNotiFavorDto) {
+        AiNotiFavor favorite = aiNotiFavorService.addFavorite(aiNotiFavorDto);
+        return ResponseEntity.ok().build();
     }
-    @DeleteMapping("delete/{studentId}/{aiNotiId}")
+    @DeleteMapping("/delete")
     @Operation(summary="북마크 삭제")
-    public ResponseEntity<?> deleteFavorite(@PathVariable String studentId, @PathVariable int aiNotiId) {
-        aiNotiFavorService.deleteFavorite(studentId, aiNotiId);
+    public ResponseEntity<?> deleteFavorite(@RequestBody AiNotiFavorDto aiNotiFavorDto) {
+        aiNotiFavorService.deleteFavorite(aiNotiFavorDto);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/all/{studentId}")
+    @GetMapping("/all/{studentNo}")
     @Operation(summary = "모든 북마크 보기")
-    public ResponseEntity<List<AiNotiDto>> getAiNotiWithFavorites(@PathVariable String studentId) {
-        List<AiNotiDto> aiNotilist = aiNotiFavorService.getAiNotiWithFavorites(studentId);
+    public ResponseEntity<List<AiNotiDto>> getAiNotiWithFavorites(@PathVariable String studentNo) {
+        List<AiNotiDto> aiNotilist = aiNotiFavorService.getAiNotiWithFavorites(studentNo);
         return ResponseEntity.ok(aiNotilist);
     }
 }

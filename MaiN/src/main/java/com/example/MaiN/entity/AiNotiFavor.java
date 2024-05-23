@@ -17,19 +17,16 @@ public class AiNotiFavor {
     private int id; // 고유한 기본 키
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", referencedColumnName = "student_id")
-    private Users studentId;
+    @JoinColumn(name="student_no")
+    private User studentNo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ai_noti_id")
     private AiNoti aiNoti;
 
     @Builder
-    public AiNotiFavor(Users studentId) {
-        this.studentId = studentId;
+    public AiNotiFavor(User studentNo) {
+        this.studentNo = studentNo;
     }
 
-    public void setAiNoti(AiNoti aiNoti) {
-        this.aiNoti = aiNoti;
-    }
 }
