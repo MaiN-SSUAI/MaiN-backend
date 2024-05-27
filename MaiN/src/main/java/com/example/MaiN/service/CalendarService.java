@@ -1,29 +1,25 @@
 package com.example.MaiN.service;
 
 
-import com.example.MaiN.dto.EventDto;
 import com.example.MaiN.dto.UserDto;
 import com.example.MaiN.entity.User;
+import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
-import com.google.j2objc.annotations.AutoreleasePool;
+import com.example.MaiN.entity.EventAssign;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 import com.example.MaiN.controller.CalendarController;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -58,6 +54,8 @@ public class CalendarService {
     private ReservRepository reservRepository;
     @Autowired
     private UserRepository UserRepository;
+    @Autowired
+    private ReservAssignRepository reservAssignRepository;
 
     //API사용을 위한 인증 정보를 가져오는 메서드
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
@@ -122,12 +120,13 @@ public class CalendarService {
         return Integer.toString(result);
     }
 
-    public Map<String, Object> toMap(List items, Event event, LocalDate date) {
+    public Map<String, Object> toMap(List items, Event event, LocalDate date, int reservId) {
         Map<String, Object> map = new HashMap<>();
         map.put("summary", event.getSummary());
         map.put("start", event.getStart().getDateTime().toString());
         map.put("end", event.getEnd().getDateTime().toString());
         map.put("eventId", event.getId());
+        map.put("reservId", reservId);
 
         DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
         DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
@@ -168,7 +167,7 @@ public class CalendarService {
     }
 
     //GET
-    public ResponseEntity<?> getCalendarEvents(LocalDate date, String location) throws Exception {
+    public ResponseEntity<?> getCalendarEvents(LocalDate date) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
@@ -187,17 +186,16 @@ public class CalendarService {
         List<Event> eventsList = events.getItems();
 
         List<Map<String, Object>> eventsMapList = new ArrayList<>();
-        for (Event event : eventsList) {
-            if (event.getSummary() != null) {
-                // 이벤트 요약에서 공백 제거
-                String summaryWithoutSpaces = event.getSummary().replaceAll("\\s+", "");
-                // 입력받은 위치에서 공백 제거
-                String locationWithoutSpaces = location.replaceAll("\\s+", "");
 
-                // 공백이 제거된 문자열을 사용하여 포함 관계 검사
-                if (summaryWithoutSpaces.contains(locationWithoutSpaces)) {
-                    eventsMapList.add(toMap(eventsList, event, date));
-                }
+        for (Event event : eventsList) {
+            EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
+            if (dbEvent != null) {
+                int reservId = dbEvent.getReservId();
+                eventsMapList.add(toMap(eventsList, event, date, reservId));
+            }
+            else {
+                int reservId = 0;
+                eventsMapList.add(toMap(eventsList, event, date, reservId));
             }
         }
         return ResponseEntity.ok(eventsMapList);
@@ -212,10 +210,11 @@ public class CalendarService {
     }
 
     // 해당 주에 해당하는 예약만 필터링
-    private void checkEventsPerWeek(String studentId, LocalDate date){
+
+    private void checkEventsPerWeek(int userId, LocalDate date){
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        List<com.example.MaiN.entity.Event> reservations = reservRepository.findByStudentId(studentId);
+        List<com.example.MaiN.entity.Event> reservations = reservRepository.findByUserId(userId);
         long countThisWeek = reservations.stream()
                 .filter(r -> {
                     LocalDate reservationDate = LocalDate.parse(r.getStartTime().split("T")[0], DateTimeFormatter.ISO_DATE);
@@ -228,8 +227,8 @@ public class CalendarService {
             }
     }
 
-    private void checkEventOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate, String location) throws Exception {
-        ResponseEntity<?> response = getCalendarEvents(startDate, location);
+    private void checkEventOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate) throws Exception {
+        ResponseEntity<?> response = getCalendarEvents(startDate);
         List<Map<String, Object>> existingEventsJson = new ArrayList<>();
         if (response.getBody() instanceof List<?>) {
             List<?> rawList = (List<?>) response.getBody();
@@ -262,7 +261,7 @@ public class CalendarService {
     }
 
     // 예약 추가하기 (주최자)
-    public String addOrganizeEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addOrganizeEvent(String studentId, int userId, String purpose, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
@@ -270,9 +269,9 @@ public class CalendarService {
         LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
         // 에약 제한 사항들
         checkDuration(startDateTime, endDateTime);
-        checkEventOverlaps(startDateTime, endDateTime, startDate, location);
-        System.out.println("Total reservations for student ID " + studentId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
-        String summary = String.format("%s/%s", location, studentId);
+        checkEventOverlaps(startDateTime, endDateTime, startDate);
+        System.out.println("Total reservations for student ID " + userId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
+        String summary = String.format("세미나실1/%s", studentId);
         Event event = new Event().setSummary(summary);
         EventDateTime start = new EventDateTime()
                 .setDateTime(startDateTime)
@@ -287,14 +286,13 @@ public class CalendarService {
     }
 
     // 예약 추가하기 (주최자 제외 팀원들)
-    public String addEvent(String location, String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(String studentId, int userId, String purpose, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
-        System.out.println("Total reservations for student ID " + studentId + " from " + startDateTimeStr + " to " + endDateTimeStr);
-
-        String summary = String.format("%s/%s", location, studentId);
+        System.out.println("Total reservations for student ID " + userId + " from " + startDateTimeStr + " to " + endDateTimeStr);
+        String summary = String.format("세미나실1/%s", studentId);
         Event event = new Event().setSummary(summary);
 
         EventDateTime start = new EventDateTime()
@@ -319,16 +317,14 @@ public class CalendarService {
             return ResponseEntity.ok("uninformed/valid user");
         }
         checkEventsPerMonth(date);
-        checkEventsPerWeek(UserDto.getStudentNo(), date);
-
+        checkEventsPerWeek(UserDto.getId(), date);
         return ResponseEntity.ok("informed/valid user");
     }
 
-    public String deleteCalendarEvents(String eventId) throws Exception {
+    public void deleteCalendarEvents(String eventId) throws Exception {
         //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
         service.events().delete(CALENDAR_ID, eventId).execute();
-        return "Event deleted successfully";
     }
 
     public String updateCalendarEvents(String location,List<String> studentId, String startDateTimeStr, String endDateTimeStr, String eventId) throws Exception {
