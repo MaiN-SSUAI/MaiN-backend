@@ -1,6 +1,7 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.SsuCatchNotiDto;
+import com.example.MaiN.dto.SsuCatchNotiFavorDto;
 import com.example.MaiN.entity.SsuCatchNotiFavor;
 import com.example.MaiN.service.SsuCatchNotiFavorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,23 +20,23 @@ public class SsuCatchNotiFavorController {
     @Autowired
     private SsuCatchNotiFavorService ssuCatchNotiFavorService;
 
-    @PostMapping("/add/{studentId}/{ssuCatchNotiId}")
+    @PostMapping("/add")
     @Operation(summary = "슈캐치 북마크 추가")
-    public ResponseEntity<SsuCatchNotiFavor> addFavorite(@PathVariable String studentId, @PathVariable int ssuCatchNotiId) {
-        SsuCatchNotiFavor favorite = ssuCatchNotiFavorService.addFavorite(studentId, ssuCatchNotiId);
-        return ResponseEntity.ok(favorite);
+    public ResponseEntity<SsuCatchNotiFavor> addFavorite(@RequestBody SsuCatchNotiFavorDto dto) {
+        SsuCatchNotiFavor favorite = ssuCatchNotiFavorService.addFavorite(dto);
+        return ResponseEntity.ok().build();
     }
-    @DeleteMapping("delete/{studentId}/{ssuCatchNotiId}")
+    @DeleteMapping("/delete")
     @Operation(summary = "슈캐치 북마크 삭제")
-    public ResponseEntity<?> deleteFavorite(@PathVariable String studentId, @PathVariable int ssuCatchNotiId) {
-        ssuCatchNotiFavorService.deleteFavorite(studentId, ssuCatchNotiId);
+    public ResponseEntity<?> deleteFavorite(@RequestBody SsuCatchNotiFavorDto ssuCatchNotiFavorDto) {
+        ssuCatchNotiFavorService.deleteFavorite(ssuCatchNotiFavorDto);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/all/{studentId}")
+    @GetMapping("/all/{studentNo}")
     @Operation(summary = "모든 북마크 보기")
-    public ResponseEntity<List<SsuCatchNotiDto>> getSsuCatchNotiWithFavorites(@PathVariable String studentId) {
-        List<SsuCatchNotiDto> ssuCatchNotilist = ssuCatchNotiFavorService.getSsuCatchNotiWithFavorites(studentId);
+    public ResponseEntity<List<SsuCatchNotiDto>> getSsuCatchNotiWithFavorites(@PathVariable String studentNo) {
+        List<SsuCatchNotiDto> ssuCatchNotilist = ssuCatchNotiFavorService.getSsuCatchNotiWithFavorites(studentNo);
         return ResponseEntity.ok(ssuCatchNotilist);
     }
 }

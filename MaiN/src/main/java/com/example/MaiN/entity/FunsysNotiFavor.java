@@ -17,19 +17,20 @@ public class FunsysNotiFavor {
     private int id; // 고유한 기본 키
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id")
-    private Users studentId;
+    @JoinColumn(name = "student_no")
+    private User studentNo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "funsys_noti_id")
     private FunsysNoti funsysNoti;
 
     @Builder
-    public FunsysNotiFavor(Users studentId) {
-        this.studentId = studentId;
+    public FunsysNotiFavor(User studentNo) {
+        this.studentNo = studentNo;
     }
 
     public void setFunsysNoti(FunsysNoti funsysNoti) {
         this.funsysNoti = funsysNoti;
     }
+
 }

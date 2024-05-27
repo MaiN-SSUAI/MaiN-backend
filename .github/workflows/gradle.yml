@@ -1,0 +1,127 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI/CD with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      working-directory: ./MaiN
+      
+    steps:
+    - name: Slack Notify Start
+      if: always()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{secrets.SLACK_WEBHOOK_URL}}
+        SLACK_TITLE: 'Job ${{github.job}}: ${{ github.repository }}'
+        SLACK_MESSAGE: 'Start'
+        SLACK_COLOR: ${{ job.status }}
+        SLACK_USERNAME: Github Actions
+
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
+    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
+    # - name: Setup Gradle
+    #   uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+
+    - name: Create env file
+      env:
+        DIR: src/main/resources
+        APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
+        APPLICATION_YML: ${{ secrets.APPLICATION_YML }}
+        CREDENTIALS: ${{ secrets.CREDENTIALS }}
+        RESERVE_CALENDAR: ${{ secrets.RESERVE_CALENDAR }}
+      run: |
+        mkdir -p $DIR
+        echo $APPLICATION_PROPERTIES | base64 --decode > $DIR/application.properties
+        echo $APPLICATION_YML | base64 --decode > $DIR/application.yml
+        echo $CREDENTIALS | base64 --decode > $DIR/credentials.json
+        echo $RESERVE_CALENDAR | base64 --decode > $DIR/reservecalendar-410115-141fd088c697.json
+      working-directory: ${{ env.working-directory }}
+      
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      working-directory: ${{ env.working-directory }}
+    - name: Build with Gradle Wrapper
+      run: ./gradlew build
+      working-directory: ${{ env.working-directory }}
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: cicdsample
+        path: ${{ env.working-directory }}/build/libs/*.jar
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: cicdsample
+          path: ./artifacts
+      
+      - name: Copy jar file to remote
+        uses: appleboy/scp-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PEM_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "./artifacts/*.jar"
+          target: "/home/ubuntu/cicd"
+          overwrite: true
+      
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PEM_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script_stop: true
+          script: |
+            chmod +x /home/ubuntu/cicd/deploy.sh
+            sh /home/ubuntu/cicd/deploy.sh
+
+      - name: Slack Notify End - Success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{secrets.SLACK_WEBHOOK_URL}}
+          SLACK_TITLE: 'Job ${{github.job}}: ${{ github.repository }}'
+          SLACK_MESSAGE: 'Success'
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_USERNAME: Github Actions
+
+      - name: Slack Notify End - Failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{secrets.SLACK_WEBHOOK_URL}}
+          SLACK_TITLE: 'Job ${{github.job}}: ${{ github.repository }}'
+          SLACK_MESSAGE: 'Failure'
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_USERNAME: Github Actions

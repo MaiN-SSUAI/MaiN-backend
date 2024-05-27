@@ -1,17 +1,21 @@
 package com.example.MaiN.service;
 
 import com.example.MaiN.dto.FunsysNotiDto;
+import com.example.MaiN.dto.FunsysNotiFavorDto;
 import com.example.MaiN.entity.FunsysNoti;
 import com.example.MaiN.entity.FunsysNotiFavor;
-import com.example.MaiN.entity.Users;
+import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.FunsysNotiFavorRepository;
-import com.example.MaiN.repository.UsersRepository;
+import com.example.MaiN.repository.UserRepository;
 import com.example.MaiN.repository.FunsysNotiRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -27,36 +31,38 @@ public class FunsysNotiFavorService {
     private FunsysNotiRepository funsysNotiRepository;
 
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository userRepository;
 
-    public FunsysNotiFavor addFavorite(String studentId, int funsysNotiId) {
-        Users student = usersRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + studentId));
+    @Transactional
+    public FunsysNotiFavor addFavorite(FunsysNotiFavorDto dto) {
+        User student = userRepository.findByNo(dto.getStudentNo())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getStudentNo()));
 
-        FunsysNoti funsysNoti = funsysNotiRepository.findById(funsysNotiId)
-                .orElseThrow(() -> new RuntimeException("funsysNoti not found with id: " + funsysNotiId));
+        FunsysNoti funsysNoti = funsysNotiRepository.findById(dto.getFunsysNotiId())
+                .orElseThrow(() -> new RuntimeException("funsysNoti not found with id: " + dto.getFunsysNotiId()));
 
         FunsysNotiFavor favorite = new FunsysNotiFavor();
-        favorite.setStudentId(student); // 사용자 엔티티 설정
+        favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setFunsysNoti(funsysNoti); // funsys_noti 엔티티 설정
+
         return funsysNotiFavoritesRepository.save(favorite);
     }
 
 
-    public void deleteFavorite(String studentId, int funsysNotiId) {
-        Users student = usersRepository.findById(studentId)
+    public void deleteFavorite(FunsysNotiFavorDto dto) {
+        User student = userRepository.findByNo(dto.getStudentNo())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        funsysNotiFavoritesRepository.findByStudentIdAndFunsysNotiId(student, funsysNotiId)
+        funsysNotiFavoritesRepository.findBystudentNoAndFunsysNotiId(student, dto.getFunsysNotiId())
                 .ifPresent(funsysNotiFavoritesRepository::delete);
     }
 
-    public List<FunsysNotiDto> getFunsysNotiWithFavorites(int studentId) {
+    public List<FunsysNotiDto> getFunsysNotiWithFavorites(int studentNo) {
         String jpql = "SELECT new com.example.MaiN.dto.FunsysNotiDto(an.id, an.title, an.link,  an.startDate, an.endDate, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
                 "FROM FunsysNoti an LEFT JOIN an.favoritesSet af " +
-                "WITH af.studentId.studentId = :studentId " +
+                "WITH af.studentNo.studentNo = :studentNo " +
                 "ORDER BY an.startDate DESC";
         TypedQuery<FunsysNotiDto> query = entityManager.createQuery(jpql, FunsysNotiDto.class);
-        query.setParameter("studentId", studentId);
+        query.setParameter("studentNo", studentNo);
         return query.getResultList();
     }
 }
