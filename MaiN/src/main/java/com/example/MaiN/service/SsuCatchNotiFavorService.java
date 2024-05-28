@@ -37,6 +37,11 @@ public class SsuCatchNotiFavorService {
         SsuCatchNoti ssuCatchNoti = ssuCatchNotiRepository.findById(dto.getSsuCatchNotiId())
                 .orElseThrow(() -> new RuntimeException("SsuCatchNoti not found with id: " + dto.getSsuCatchNotiId()));
 
+        boolean exists = ssuCatchNotiFavoritesRepository.existsByStudentNoAndSsuCatchNoti(student, ssuCatchNoti);
+        if(exists) {
+            throw new RuntimeException("This Favorite Already Exists");
+        }
+
         SsuCatchNotiFavor favorite = new SsuCatchNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setSsuCatchNoti(ssuCatchNoti); // ssucatch 엔티티 설정
@@ -53,7 +58,7 @@ public class SsuCatchNotiFavorService {
     }
 
     public List<SsuCatchNotiDto> getSsuCatchNotiWithFavorites(String studentNo) {
-        String jpql = "SELECT DISTINCT new com.example.MaiN.dto.SsuCatchNotiDto(an.id, an.title, an.link, an.progress, an.category, an.date, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
+        String jpql = "SELECT new com.example.MaiN.dto.SsuCatchNotiDto(an.id, an.title, an.link, an.progress, an.category, an.date, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
                 "FROM SsuCatchNoti an LEFT JOIN an.favoritesSet af " +
                 "WITH af.studentNo.studentNo = :studentNo " +
                 "ORDER BY an.date DESC";

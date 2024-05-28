@@ -40,6 +40,12 @@ public class AiNotiFavorService {
         AiNoti aiNoti = aiNotiRepository.findById(aiNotiFavorDto.getAiNotiId())
                 .orElseThrow(() -> new RuntimeException("ai_noti not found with id: " + aiNotiFavorDto.getAiNotiId()));
 
+        //이미 북마크로 추가했는지 확인
+        boolean exists = aiNotiFavoritesRepository.existsByStudentNoAndAiNoti(student, aiNoti);
+        if(exists) {
+            throw new RuntimeException("This Favorite Already Exists");
+        }
+
         AiNotiFavor favorite = new AiNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setAiNoti(aiNoti); // ai_noti 엔티티 설정
@@ -55,7 +61,7 @@ public class AiNotiFavorService {
     }
 
     public List<AiNotiDto> getAiNotiWithFavorites(String studentNo) {
-        String jpql = "SELECT DISTINCT new com.example.MaiN.dto.AiNotiDto(an.id, an.title, an.link, an.date, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
+        String jpql = "SELECT new com.example.MaiN.dto.AiNotiDto(an.id, an.title, an.link, an.date, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
                 "FROM AiNoti an LEFT JOIN an.favoritesSet af " +
                 "WITH af.studentNo.studentNo = :studentNo " +
                 "ORDER BY an.date DESC";
