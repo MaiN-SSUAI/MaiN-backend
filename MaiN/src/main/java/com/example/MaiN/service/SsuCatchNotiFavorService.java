@@ -53,7 +53,7 @@ public class SsuCatchNotiFavorService {
     }
 
     public List<SsuCatchNotiDto> getSsuCatchNotiWithFavorites(String studentNo) {
-        String jpql = "SELECT new com.example.MaiN.dto.SsuCatchNotiDto(an.id, an.title, an.link, an.progress, an.category, an.date, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
+        String jpql = "SELECT DISTINCT new com.example.MaiN.dto.SsuCatchNotiDto(an.id, an.title, an.link, an.progress, an.category, an.date, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
                 "FROM SsuCatchNoti an LEFT JOIN an.favoritesSet af " +
                 "WITH af.studentNo.studentNo = :studentNo " +
                 "ORDER BY an.date DESC";
