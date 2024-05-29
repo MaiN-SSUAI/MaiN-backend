@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -86,8 +87,8 @@ public class JWTProvider {
         catch (SignatureException e){
             throw new BadCredentialsException("유효하지 않은 secret key", e);
         }
-        catch (ExpiredJwtException e){
-            throw new Exception("토큰이 만료됨",e);
+        catch(ExpiredJwtException e){
+            throw e;
         }
         catch (UnsupportedJwtException e){
             throw new UnsupportedJwtException("지원되지 않는 토큰",e);
