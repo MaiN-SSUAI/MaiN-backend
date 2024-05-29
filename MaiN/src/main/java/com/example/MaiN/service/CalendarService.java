@@ -188,14 +188,18 @@ public class CalendarService {
         List<Map<String, Object>> eventsMapList = new ArrayList<>();
 
         for (Event event : eventsList) {
-            EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
-            if (dbEvent != null) {
-                int reservId = dbEvent.getReservId();
-                eventsMapList.add(toMap(eventsList, event, date, reservId));
-            }
-            else {
-                int reservId = 0;
-                eventsMapList.add(toMap(eventsList, event, date, reservId));
+            String summary = event.getSummary();
+            // 특정 문자열이 포함된 장소에 예약된 이벤트만 필터링
+            String[] parts = summary.split("/");
+            if (parts.length > 0 && parts[0].contains("1")) {
+                EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
+                if (dbEvent != null) {
+                    int reservId = dbEvent.getReservId();
+                    eventsMapList.add(toMap(eventsList, event, date, reservId));
+                } else {
+                    int reservId = 0;
+                    eventsMapList.add(toMap(eventsList, event, date, reservId));
+                }
             }
         }
         return ResponseEntity.ok(eventsMapList);

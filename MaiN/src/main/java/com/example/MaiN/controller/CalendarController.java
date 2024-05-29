@@ -44,7 +44,7 @@ public class CalendarController {
     //특정 날짜 일정 보기
     @GetMapping("/events")
     @Operation(summary = "모든 예약 불러오기")
-    public ResponseEntity<?> getCalendarEvents(@RequestParam(name="date") LocalDate date, @RequestParam(name="location") String location) throws Exception {
+    public ResponseEntity<?> getCalendarEvents(@RequestParam(name="date") LocalDate date) throws Exception {
         return calendarService.getCalendarEvents(date);
     }
 
