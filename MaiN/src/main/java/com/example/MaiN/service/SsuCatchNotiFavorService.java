@@ -37,6 +37,11 @@ public class SsuCatchNotiFavorService {
         SsuCatchNoti ssuCatchNoti = ssuCatchNotiRepository.findById(dto.getSsuCatchNotiId())
                 .orElseThrow(() -> new RuntimeException("SsuCatchNoti not found with id: " + dto.getSsuCatchNotiId()));
 
+        boolean exists = ssuCatchNotiFavoritesRepository.existsByStudentNoAndSsuCatchNoti(student, ssuCatchNoti);
+        if(exists) {
+            throw new RuntimeException("This Favorite Already Exists");
+        }
+
         SsuCatchNotiFavor favorite = new SsuCatchNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setSsuCatchNoti(ssuCatchNoti); // ssucatch 엔티티 설정

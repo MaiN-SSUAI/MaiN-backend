@@ -7,8 +7,10 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Setter
+@Getter
 @Data
 public class UserDto {
+    private int id;
     private String studentNo;
 
     public User toEntity() {

@@ -9,7 +9,6 @@ import java.util.Optional;
 
 
 public interface UserRepository extends CrudRepository<User, String> {
-    @Query("SELECT u FROM User u WHERE u.studentNo = ?1")
     User findByStudentNo(String studentNo);
 
     @Query("SELECT u FROM User u WHERE u.studentNo = ?1")

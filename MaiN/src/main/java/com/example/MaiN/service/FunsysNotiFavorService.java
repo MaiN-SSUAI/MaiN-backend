@@ -41,10 +41,14 @@ public class FunsysNotiFavorService {
         FunsysNoti funsysNoti = funsysNotiRepository.findById(dto.getFunsysNotiId())
                 .orElseThrow(() -> new RuntimeException("funsysNoti not found with id: " + dto.getFunsysNotiId()));
 
+        boolean exists = funsysNotiFavoritesRepository.existsByStudentNoAndFunsysNoti(student, funsysNoti);
+        if(exists) {
+            throw new RuntimeException("This Favorite Already Exists");
+        }
+
         FunsysNotiFavor favorite = new FunsysNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setFunsysNoti(funsysNoti); // funsys_noti 엔티티 설정
-
         return funsysNotiFavoritesRepository.save(favorite);
     }
 
@@ -57,9 +61,8 @@ public class FunsysNotiFavorService {
     }
 
     public List<FunsysNotiDto> getFunsysNotiWithFavorites(int studentNo) {
-        String jpql = "SELECT new com.example.MaiN.dto.FunsysNotiDto(an.id, an.title, an.link,  an.startDate, an.endDate, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
-                "FROM FunsysNoti an LEFT JOIN an.favoritesSet af " +
-                "WITH af.studentNo.studentNo = :studentNo " +
+        String jpql = "SELECT new com.example.MaiN.dto.FunsysNotiDto(an.id, an.title, an.link, an.startDate, an.endDate, CASE WHEN af.studentNo.studentNo IS NOT NULL THEN true ELSE false END) " +
+                "FROM FunsysNoti an LEFT JOIN an.favoritesSet af ON af.studentNo.studentNo = :studentNo " +
                 "ORDER BY an.startDate DESC";
         TypedQuery<FunsysNotiDto> query = entityManager.createQuery(jpql, FunsysNotiDto.class);
         query.setParameter("studentNo", studentNo);

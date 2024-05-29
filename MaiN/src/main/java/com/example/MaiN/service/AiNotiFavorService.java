@@ -40,6 +40,12 @@ public class AiNotiFavorService {
         AiNoti aiNoti = aiNotiRepository.findById(aiNotiFavorDto.getAiNotiId())
                 .orElseThrow(() -> new RuntimeException("ai_noti not found with id: " + aiNotiFavorDto.getAiNotiId()));
 
+        //이미 북마크로 추가했는지 확인
+        boolean exists = aiNotiFavoritesRepository.existsByStudentNoAndAiNoti(student, aiNoti);
+        if(exists) {
+            throw new RuntimeException("This Favorite Already Exists");
+        }
+
         AiNotiFavor favorite = new AiNotiFavor();
         favorite.setStudentNo(student); // 사용자 엔티티 설정
         favorite.setAiNoti(aiNoti); // ai_noti 엔티티 설정
