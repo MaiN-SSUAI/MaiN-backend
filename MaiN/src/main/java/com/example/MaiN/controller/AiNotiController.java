@@ -24,6 +24,7 @@ public class AiNotiController {
     public List<AiNotiDto> list(){
         return aiNotiService.listAll();
     }
+
     @GetMapping("/noti")
     @Operation(summary = "특정 글 불러오기")
     public Optional<AiNotiDto> getById(@RequestParam("id") int id) {
