@@ -54,7 +54,7 @@ public class CalendarService {
     @Autowired
     private ReservRepository reservRepository;
     @Autowired
-    private UserRepository UserRepository;
+    private UserRepository userRepository;
     @Autowired
     private ReservAssignRepository reservAssignRepository;
 
@@ -296,7 +296,6 @@ public class CalendarService {
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
-        System.out.println("Total reservations for student ID " + userId + " from " + startDateTimeStr + " to " + endDateTimeStr);
         String summary = String.format("세미나실1/%s", studentId);
         Event event = new Event().setSummary(summary);
 
@@ -314,15 +313,17 @@ public class CalendarService {
         return event.getId();
     }
 
-    public ResponseEntity<?> checkUser(UserDto UserDto, LocalDate date) {
+    public ResponseEntity<?> checkUser(String studentId, LocalDate date) {
 
-        Optional<User> checkUser = Optional.ofNullable(UserRepository.findByStudentNo(UserDto.getStudentNo()));
+        Optional<User> userOptional = userRepository.findByStudentNo(studentId);
+        User user = userOptional.orElse(null);
 
-        if(!checkUser.isPresent()){
+        if(user == null){
             return ResponseEntity.ok("uninformed/valid user");
         }
+        int userId = user.getId();
         checkEventsPerMonth(date);
-        checkEventsPerWeek(UserDto.getId(), date);
+        checkEventsPerWeek(userId, date);
         return ResponseEntity.ok("informed/valid user");
     }
 

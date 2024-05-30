@@ -35,7 +35,7 @@ public class FunsysNotiFavorService {
 
     @Transactional
     public FunsysNotiFavor addFavorite(FunsysNotiFavorDto dto) {
-        User student = userRepository.findByNo(dto.getStudentNo())
+        User student = userRepository.findByStudentNo(dto.getStudentNo())
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getStudentNo()));
 
         FunsysNoti funsysNoti = funsysNotiRepository.findById(dto.getFunsysNotiId())
@@ -54,7 +54,7 @@ public class FunsysNotiFavorService {
 
 
     public void deleteFavorite(FunsysNotiFavorDto dto) {
-        User student = userRepository.findByNo(dto.getStudentNo())
+        User student = userRepository.findByStudentNo(dto.getStudentNo())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         funsysNotiFavoritesRepository.findBystudentNoAndFunsysNotiId(student, dto.getFunsysNotiId())
                 .ifPresent(funsysNotiFavoritesRepository::delete);
