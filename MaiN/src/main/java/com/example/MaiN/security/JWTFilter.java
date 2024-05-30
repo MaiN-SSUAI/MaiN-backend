@@ -3,6 +3,7 @@ package com.example.MaiN.security;
 
 //import com.example.MaiN.dto.ValidateReturnDto;
 import com.example.MaiN.service.UsersService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,42 +29,46 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTProvider jwtProvider;
 
-    //필터링 로직
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         String path = request.getRequestURI();
 
-        if(path.equals("/users/login")|| path.startsWith("/swagger") || path.startsWith("/api-docs") || path.startsWith("/v3")) {
-            filterChain.doFilter(request,response);
+        if (path.equals("/users/login") || path.startsWith("/swagger") || path.startsWith("/api-docs") || path.startsWith("/v3")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        //Access token 가져오기
         try {
             String accessToken = getAccessToken(request);
 
-            if(accessToken == null) {
-                throw new Exception("no token provided");
+            if (accessToken == null) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter().write("No token provided");
+                return;
             }
 
-            //access token 유효성 검증
-            if(jwtProvider.validateToken(accessToken)) {
-                //해당 토큰의 Authentication 을 가져와 SecurityContext 에 저장
+            if (jwtProvider.validateToken(accessToken)) {
                 Authentication authentication = jwtProvider.getAuthentication(accessToken);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (ExpiredJwtException e) {
+            SecurityContextHolder.clearContext();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token expired");
+            return;
         } catch (Exception e) {
-            SecurityContextHolder.getContext().setAuthentication(null);
-            throw new RuntimeException(e);
+            SecurityContextHolder.clearContext();
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("An internal error occurred");
+            return;
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 
-    private String getAccessToken(@NotNull HttpServletRequest request){
+    private String getAccessToken(@NotNull HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(PREFIX)){
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(PREFIX)) {
             return bearerToken.split(" ")[1].trim();
         }
         return null;

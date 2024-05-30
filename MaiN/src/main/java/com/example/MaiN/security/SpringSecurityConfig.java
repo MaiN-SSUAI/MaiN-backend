@@ -4,6 +4,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,9 +26,9 @@ import java.io.IOException;
 @Configuration
 @EnableWebSecurity // Spring Security를 활성화하는 어노테이션입니다.
 @RequiredArgsConstructor
+@Slf4j
 public class SpringSecurityConfig {
     private final JWTFilter jwtFilter;
-
     //Security filter chain config
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,8 +43,8 @@ public class SpringSecurityConfig {
                                 .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()) //나머지 API 는 인증이 되어야 요청 가능
                 .exceptionHandling((exceptionHandling) -> exceptionHandling
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
+                        .authenticationEntryPoint(getUnathorizedEntryPoint())
+                        .accessDeniedHandler(getAccessDeniedHandler()))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
