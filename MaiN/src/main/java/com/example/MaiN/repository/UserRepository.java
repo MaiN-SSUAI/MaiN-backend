@@ -9,10 +9,9 @@ import java.util.Optional;
 
 
 public interface UserRepository extends CrudRepository<User, String> {
-    User findByStudentNo(String studentNo);
 
     @Query("SELECT u FROM User u WHERE u.studentNo = ?1")
-    Optional<User> findByNo(String studentNo);
+    Optional<User> findByStudentNo(String studentNo);
 
     @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.funsysNoti WHERE u.studentNo = :studentNo", nativeQuery = true)
     Optional<User> findUserWithFunsysNotiByNo(@Param("studentNo") String studentNo);

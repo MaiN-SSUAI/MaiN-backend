@@ -34,7 +34,7 @@ public class AiNotiFavorService {
 
     @Transactional
     public AiNotiFavor addFavorite(AiNotiFavorDto aiNotiFavorDto) {
-        User student = userRepository.findByNo(aiNotiFavorDto.getStudentNo())
+        User student = userRepository.findByStudentNo(aiNotiFavorDto.getStudentNo())
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + aiNotiFavorDto.getStudentNo()));
 
         AiNoti aiNoti = aiNotiRepository.findById(aiNotiFavorDto.getAiNotiId())
@@ -54,7 +54,7 @@ public class AiNotiFavorService {
 
 
     public void deleteFavorite(AiNotiFavorDto aiNotiFavorDto) {
-        User student = userRepository.findByNo(aiNotiFavorDto.getStudentNo())
+        User student = userRepository.findByStudentNo(aiNotiFavorDto.getStudentNo())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         aiNotiFavoritesRepository.findBystudentNoAndAiNotiId(student, aiNotiFavorDto.getAiNotiId())
                 .ifPresent(aiNotiFavoritesRepository::delete);

@@ -19,10 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UsersService {
@@ -47,7 +44,7 @@ public class UsersService {
 
     public void addUser(String stdNo,String stdName){
         //해당 학번이 이미 db 에 저장되어 있는지 확인
-        User foundUser = userRepository.findByStudentNo(stdNo);
+        Optional<User> foundUser = userRepository.findByStudentNo(stdNo);
 
         if(foundUser == null){
             User user = new User();
@@ -188,7 +185,7 @@ public class UsersService {
         String refreshToken = jwtProvider.generateRefreshToken();
 
         //refresh token 을 db 에 저장
-        Optional<User> userOptional = Optional.ofNullable(userRepository.findByStudentNo(stdNo));
+        Optional<User> userOptional = userRepository.findByStudentNo(stdNo);
         if(userOptional.isEmpty()){
             throw new RuntimeException("user not found with studentNo :" + stdNo);
         }
@@ -196,14 +193,6 @@ public class UsersService {
 
         user.setRefreshToken(refreshToken);
         userRepository.save(user);
-//
-//        //refresh 토큰 정보 저장
-//        RefreshToken refreshTokenDB = RefreshToken.builder()
-//                .studentNo(loginRequestDto.getstudentNo())
-//                .refreshToken(refreshToken)
-//                .build();
-//
-//        refreshTokenRepository.save(refreshTokenDB);
 
         return TokenDto.builder()
             .accessToken(accessToken)
@@ -224,7 +213,9 @@ public class UsersService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String stdNo = userDetails.getUsername();
 
-        User user = userRepository.findByStudentNo(stdNo);
+        Optional<User> userOptional = userRepository.findByStudentNo(stdNo);
+        User user = userOptional.orElseThrow(() -> new NoSuchElementException("User not found for studentId: " + stdNo));
+
         if(user == null){
             throw new RuntimeException("존재하지 않는 사용자");
         }
@@ -251,7 +242,7 @@ public class UsersService {
 
     //로그아웃
     public boolean logout(String stdNo){
-        Optional<User> userOptional = Optional.ofNullable(userRepository.findByStudentNo(stdNo))
+        Optional<User> userOptional = userRepository.findByStudentNo(stdNo)
                 .filter(user->user.getRefreshToken() != null);
 
         if(userOptional.isPresent()) {
@@ -260,7 +251,7 @@ public class UsersService {
             userRepository.save(user);
 
             //refresh token 이 정상적으로 삭제되었는지 확인
-            Optional<User> updatedUser = Optional.ofNullable(userRepository.findByStudentNo(stdNo));
+            Optional<User> updatedUser = userRepository.findByStudentNo(stdNo);
             return updatedUser.map(u->u.getRefreshToken() == null).orElse(false);
         }
         else{

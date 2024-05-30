@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -50,8 +51,8 @@ public class CalendarController {
 
     @GetMapping("/check/user")
     @Operation(summary = "세미나실 사용자 등록")
-    public ResponseEntity<?> addUsers(@RequestBody UserDto UserDto, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        return calendarService.checkUser(UserDto, date);
+    public ResponseEntity<?> addUsers(@RequestParam("user") String user, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        return calendarService.checkUser(user, date);
     }
     @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
@@ -59,21 +60,30 @@ public class CalendarController {
         List<String> studentIds = eventDto.getStudentIds();
         int reservId = 0;
         for (int i = 0; i<studentIds.size(); i++) {
-            String studentId = studentIds.get(i);
-            User user = userRepository.findByStudentNo(studentId);
-            int userId = user.getId();
             if (i == 0) {
+                String studentId = studentIds.get(i);
+                Optional<User> userOptional = userRepository.findByStudentNo(studentId);
+                User user = userOptional.orElse(null);
+                int userId = user.getId();
                 String eventId = calendarService.addOrganizeEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
                 Event event = eventDto.toEntity(userId);
-                Event saved = reservRepository.save(event);
+                Event saved = reservRepository.save(event); //대표 이벤트 저장
                 reservId = saved.getId();
                 EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId);
-                EventAssign eventOther = eventAssignDto.toEntity();
+                EventAssign eventOther = eventAssignDto.toEntity(); //대표 이벤트를 나머지 이벤트에 한번 더 저장 (삭제용)
                 reservAssignRepository.save(eventOther);
             }
             else {
+                int userId;
+                String studentId = studentIds.get(i);
+                Optional<User> userOptional = userRepository.findByStudentNo(studentId);
+                User user = userOptional.orElse(null);
+
+                if(user == null){ userId = 1; } //정보 없는 학생일 경우 userId = 1
+                else{ userId = user.getId(); } //정보 있는 학생일 경우 정보 가져옴
+
                 String eventId = calendarService.addEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId);
+                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId); //나머지 이벤트 저장
                 EventAssign eventOther = eventAssignDto.toEntity();
                 reservAssignRepository.save(eventOther);
             }
