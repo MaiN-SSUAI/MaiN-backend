@@ -39,4 +39,7 @@ public class FunsysNoti {
         this.startDate = startDate;
         this.endDate = endDate;
     }
+    public boolean isFavorites() {
+        return favoritesSet != null && !favoritesSet.isEmpty();
+    }
 }

@@ -35,4 +35,8 @@ public class AiNoti {
         this.link = link;
         this.date = date;
     }
+
+    public boolean isFavorites() {
+        return favoritesSet != null && !favoritesSet.isEmpty();
+    }
 }
