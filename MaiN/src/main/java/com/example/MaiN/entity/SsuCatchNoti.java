@@ -43,4 +43,7 @@ public class SsuCatchNoti {
         this.category = category;
         this.date = date;
     }
+    public boolean isFavorites() {
+        return favoritesSet != null && !favoritesSet.isEmpty();
+    }
 }

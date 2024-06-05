@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import javax.swing.text.html.Option;
 import java.util.*;
 
+import static java.util.Optional.ofNullable;
+
 @Service
 public class UsersService {
     private final UserRepository userRepository;
@@ -44,7 +46,7 @@ public class UsersService {
 
     public void addUser(String stdNo,String stdName){
         //해당 학번이 이미 db 에 저장되어 있는지 확인
-        Optional<User> foundUser = userRepository.findByStudentNo(stdNo);
+        User foundUser = userRepository.findByNo(stdNo);
 
         if(foundUser == null){
             User user = new User();
@@ -185,7 +187,8 @@ public class UsersService {
         String refreshToken = jwtProvider.generateRefreshToken();
 
         //refresh token 을 db 에 저장
-        Optional<User> userOptional = userRepository.findByStudentNo(stdNo);
+        //Optional<User> userOptional = userRepository.findByStudentNo(stdNo);
+        Optional<User> userOptional = Optional.ofNullable(userRepository.findByNo((stdNo)));
         if(userOptional.isEmpty()){
             throw new RuntimeException("user not found with studentNo :" + stdNo);
         }

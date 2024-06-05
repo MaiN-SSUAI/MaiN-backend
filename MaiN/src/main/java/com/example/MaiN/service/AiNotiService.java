@@ -1,10 +1,14 @@
 package com.example.MaiN.service;
 
-import com.example.MaiN.dto.AiNotiDto;
-import com.example.MaiN.repository.AiNotiRepository;
+import com.example.MaiN.entity.AiNoti;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.example.MaiN.dto.AiNotiDto;
+import com.example.MaiN.repository.AiNotiRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +17,7 @@ import java.util.Optional;
 public class AiNotiService {
 
     @Autowired
-    private final AiNotiRepository aiNotiRepository;
+    private AiNotiRepository aiNotiRepository;
 
     public AiNotiService(AiNotiRepository aiNotiRepository) {
         this.aiNotiRepository = aiNotiRepository;

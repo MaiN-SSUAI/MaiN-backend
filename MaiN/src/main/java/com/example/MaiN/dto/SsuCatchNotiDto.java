@@ -1,5 +1,8 @@
 package com.example.MaiN.dto;
 
+import com.example.MaiN.entity.AiNoti;
+import com.example.MaiN.entity.SsuCatchNoti;
+
 import java.time.LocalDate;
 
 public class SsuCatchNotiDto {
@@ -40,5 +43,17 @@ public class SsuCatchNotiDto {
     public LocalDate getsDate() { return date; }
     public boolean getFavorites() {
         return favorites;
+    }
+
+    public static SsuCatchNotiDto from(SsuCatchNoti ssuCatchNoti) {
+        return new SsuCatchNotiDto(
+                Math.toIntExact(ssuCatchNoti.getId()),
+                ssuCatchNoti.getTitle(),
+                ssuCatchNoti.getLink(),
+                ssuCatchNoti.getProgress(),
+                ssuCatchNoti.getCategory(),
+                ssuCatchNoti.getDate(),
+                ssuCatchNoti.isFavorites()
+        );
     }
 }

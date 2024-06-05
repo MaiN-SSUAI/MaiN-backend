@@ -1,9 +1,11 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.dto.AiNotiDto;
+import com.example.MaiN.entity.AiNoti;
 import com.example.MaiN.service.AiNotiService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
