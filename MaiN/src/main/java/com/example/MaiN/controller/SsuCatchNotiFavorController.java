@@ -1,5 +1,6 @@
 package com.example.MaiN.controller;
 
+import com.example.MaiN.dto.AiNotiDto;
 import com.example.MaiN.dto.SsuCatchNotiDto;
 import com.example.MaiN.dto.SsuCatchNotiFavorDto;
 import com.example.MaiN.entity.SsuCatchNotiFavor;
@@ -35,8 +36,8 @@ public class SsuCatchNotiFavorController {
 
     @GetMapping("/all/{studentNo}")
     @Operation(summary = "모든 북마크 보기")
-    public ResponseEntity<List<SsuCatchNotiDto>> getSsuCatchNotiWithFavorites(@PathVariable String studentNo) {
-        List<SsuCatchNotiDto> ssuCatchNotilist = ssuCatchNotiFavorService.getSsuCatchNotiWithFavorites(studentNo);
+    public ResponseEntity<List<SsuCatchNotiDto>>  getSsuCatchWithFavorites(@PathVariable int studentNo, @RequestParam("pageNo") int pageNo) {
+        List<SsuCatchNotiDto> ssuCatchNotilist = ssuCatchNotiFavorService.getSsuCatchWithFavorites(studentNo, pageNo);
         return ResponseEntity.ok(ssuCatchNotilist);
     }
 }

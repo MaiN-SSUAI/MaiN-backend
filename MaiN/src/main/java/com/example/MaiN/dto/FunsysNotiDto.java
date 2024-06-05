@@ -1,5 +1,8 @@
 package com.example.MaiN.dto;
 
+import com.example.MaiN.entity.AiNoti;
+import com.example.MaiN.entity.FunsysNoti;
+
 import java.time.LocalDate;
 
 public class FunsysNotiDto {
@@ -30,9 +33,20 @@ public class FunsysNotiDto {
     public String getLink() {
         return link;
     }
-    public LocalDate getstartDate() { return startDate; }
-    public LocalDate getendDate() { return endDate; }
+    public LocalDate getStartDate() { return startDate; }
+    public LocalDate getEndDate() { return endDate; }
     public boolean getFavorites() {
         return favorites;
+    }
+
+    public static FunsysNotiDto from(FunsysNoti funsysNoti) {
+        return new FunsysNotiDto(
+                Math.toIntExact(funsysNoti.getId()),
+                funsysNoti.getTitle(),
+                funsysNoti.getLink(),
+                funsysNoti.getStartDate(),
+                funsysNoti.getEndDate(),
+                funsysNoti.isFavorites()
+        );
     }
 }

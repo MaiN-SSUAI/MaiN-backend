@@ -1,9 +1,11 @@
 package com.example.MaiN.dto;
 
+import com.example.MaiN.entity.AiNoti;
+
 import java.time.LocalDate;
 
 public class AiNotiDto {
-    private int id;
+    private Integer id;
     private String title;
     private String link;
     private LocalDate date;
@@ -34,5 +36,15 @@ public class AiNotiDto {
 
     public boolean getFavorites() {
         return favorites;
+    }
+    // 추가된 from 메서드
+    public static AiNotiDto from(AiNoti aiNoti) {
+        return new AiNotiDto(
+                Math.toIntExact(aiNoti.getId()),
+                aiNoti.getTitle(),
+                aiNoti.getLink(),
+                aiNoti.getDate(),
+                aiNoti.isFavorites()
+        );
     }
 }
