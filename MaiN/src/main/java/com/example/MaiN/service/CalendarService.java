@@ -121,16 +121,17 @@ public class CalendarService {
         return Integer.toString(result);
     }
 
-    public Map<String, Object> toMap(List items, Event event, LocalDate date, int reservId) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("summary", event.getSummary());
-        map.put("start", event.getStart().getDateTime().toString());
-        map.put("end", event.getEnd().getDateTime().toString());
-        map.put("eventId", event.getId());
+    public Map<String, Object> toMap(Event event, LocalDate date, int reservId) {
+        Map<String, Object> map = new LinkedHashMap<>();
         map.put("reservId", reservId);
+        List<String> studentNos = new ArrayList<>();
+        map.put("studentNo", studentNos);
 
         DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
         DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
+
+        map.put("start", event.getStart().getDateTime().toString());
+        map.put("end", event.getEnd().getDateTime().toString());
 
         // DateTime 객체를 Instant 객체로 변환
         Instant startInstant = Instant.ofEpochMilli(startDateTime.getValue());
@@ -169,7 +170,7 @@ public class CalendarService {
 
     //GET
     public ResponseEntity<?> getCalendarEvents(LocalDate date) throws Exception {
-        //구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
+        // 구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = getCalendarService();
 
         // 입력받은 날짜를 이용해 그 날의 시작 시간과 끝 시간을 DateTime 형식으로 변환
@@ -183,10 +184,11 @@ public class CalendarService {
                 .setOrderBy("startTime")
                 .setSingleEvents(true)
                 .execute();
-        //가져온 이벤트들을 리스트에 저장
+        // 가져온 이벤트들을 리스트에 저장
         List<Event> eventsList = events.getItems();
 
-        List<Map<String, Object>> eventsMapList = new ArrayList<>();
+        Map<Integer, Map<String, Object>> useGoogleEventsMap = new LinkedHashMap<>(); // useGoogleEventsMap 은 reservId가 0으로 객체 하나로 합칠 필요 X
+        List<Map<String, Object>> useAppEventsList = new ArrayList<>(); // useAppEventsList는 여러명 예약으로 객체를 하나로 합칠 필요 O
 
         for (Event event : eventsList) {
             String summary = event.getSummary();
@@ -194,17 +196,41 @@ public class CalendarService {
             String[] parts = summary.split("/");
             if (parts.length > 0 && parts[0].contains("1")) {
                 EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
-                if (dbEvent != null) {
-                    int reservId = dbEvent.getReservId();
-                    eventsMapList.add(toMap(eventsList, event, date, reservId));
+                int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
+
+                // 이벤트를 맵으로 변환
+                Map<String, Object> eventMap = toMap(event, date, reservId);
+                String studentNo = parts[1];
+
+                // 동일한 reservId를 가진 기존 이벤트가 이미 맵에 있는 경우
+                if (reservId == 0) {
+                    List<String> studentNos = new ArrayList<>();
+                    studentNos.add(studentNo);
+                    eventMap.put("studentNo", studentNos);
+                    useAppEventsList.add(eventMap);
                 } else {
-                    int reservId = 0;
-                    eventsMapList.add(toMap(eventsList, event, date, reservId));
+                    // 동일한 reservId를 가진 기존 이벤트가 이미 맵에 있는 경우
+                    if (useGoogleEventsMap.containsKey(reservId)) {
+                        Map<String, Object> existingEventMap = useGoogleEventsMap.get(reservId);
+                        List<String> studentNos = (List<String>) existingEventMap.get("studentNo");
+                        studentNos.add(studentNo);
+                    } else {
+                        List<String> studentNos = new ArrayList<>();
+                        studentNos.add(studentNo);
+                        eventMap.put("studentNo", studentNos);
+                        useGoogleEventsMap.put(reservId, eventMap);
+                    }
                 }
             }
         }
-        return ResponseEntity.ok(eventsMapList);
+
+        // 리스트로 변환
+        List<Map<String, Object>> allEventsList = new ArrayList<>(useGoogleEventsMap.values());
+        allEventsList.addAll(useAppEventsList);
+
+        return ResponseEntity.ok(allEventsList);
     }
+
 
     private void checkDuration(DateTime startDateTime, DateTime endDateTime) throws CustomException {
         long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
