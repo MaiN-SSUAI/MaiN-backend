@@ -49,6 +49,12 @@ public class CalendarController {
         return calendarService.getCalendarEvents(date);
     }
 
+    @GetMapping("/events/week")
+    @Operation(summary = "모든 예약 불러오기")
+    public ResponseEntity<?> getWeekCalendarEvents(@RequestParam(name="date") LocalDate date) throws Exception {
+        return calendarService.getWeekCalendarEvents(date);
+    }
+
     @GetMapping("/check/user")
     @Operation(summary = "세미나실 사용자 등록")
     public ResponseEntity<?> addUsers(@RequestParam("user") String user, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
