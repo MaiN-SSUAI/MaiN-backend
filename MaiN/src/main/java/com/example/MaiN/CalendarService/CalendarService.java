@@ -25,7 +25,10 @@ public class CalendarService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private static ReservAssignRepository reservAssignRepository;
+    private ReservAssignRepository reservAssignRepository;
+
+    @Autowired
+    private CalendarValidService calendarValidService;
 
     public static class CustomException extends RuntimeException {
         public CustomException(String message) {
@@ -40,8 +43,8 @@ public class CalendarService {
         LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
         LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
         // 에약 제한 사항들
-        CalendarValidService.checkDuration(startDateTime, endDateTime);
-        CalendarValidService.checkEventOverlaps(startDateTime, endDateTime, startDate);
+        calendarValidService.checkDuration(startDateTime, endDateTime);
+        calendarValidService.checkEventOverlaps(startDateTime, endDateTime, startDate);
         System.out.println("Total reservations for student ID " + userId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
         String summary = String.format("세미나실1/%s", studentId);
         Event event = new Event().setSummary(summary);
@@ -89,8 +92,8 @@ public class CalendarService {
             return ResponseEntity.ok("uninformed/valid user");
         }
         int userId = user.getId();
-        CalendarValidService.checkEventsPerMonth(date);
-        CalendarValidService.checkEventsPerWeek(userId, date);
+        calendarValidService.checkEventsPerMonth(date);
+        calendarValidService.checkEventsPerWeek(userId, date);
         return ResponseEntity.ok("informed/valid user");
     }
 

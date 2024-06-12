@@ -18,9 +18,11 @@ import java.util.*;
 @Service
 public class CalendarGetService {
     private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com"; //학부
+
     @Autowired
-    private static ReservAssignRepository reservAssignRepository;
-    public static String calPixel(DateTime time) {
+    private ReservAssignRepository reservAssignRepository;
+
+    public String calPixel(DateTime time) {
         Instant instant = Instant.ofEpochMilli(time.getValue());
         ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
         int hour = zonedDateTime.getHour();
@@ -30,7 +32,7 @@ public class CalendarGetService {
         return Integer.toString(result);
     }
 
-    public static Map<String, Object> toMap(Event event, LocalDate date, int reservId) {
+    public Map<String, Object> toMap(Event event, LocalDate date, int reservId) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("reservId", reservId);
         List<String> studentNos = new ArrayList<>();
@@ -77,7 +79,7 @@ public class CalendarGetService {
         return map;
     }
 
-    public static List devGet(LocalDate date) throws Exception {
+    public List<Event> devGet(LocalDate date) throws Exception {
         Calendar service = CalendarApproach.getCalendarService();
         // 입력받은 날짜를 이용해 그 날의 시작 시간과 끝 시간을 DateTime 형식으로 변환
         DateTime startOfDay = new DateTime(date.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
@@ -92,12 +94,11 @@ public class CalendarGetService {
                 .execute();
 
         // 가져온 이벤트들을 리스트에 저장
-        List<Event> eventsList = events.getItems();
-        return eventsList;
+        return events.getItems();
     }
 
     //GET
-    public static ResponseEntity<?> getCalendarEvents(LocalDate date) throws Exception {
+    public ResponseEntity<?> getCalendarEvents(LocalDate date) throws Exception {
         //Calendar 객체 생성
         Calendar service = CalendarApproach.getCalendarService();
 
@@ -159,6 +160,7 @@ public class CalendarGetService {
 
         return ResponseEntity.ok(allEventsList);
     }
+
     public ResponseEntity<?> getWeekCalendarEvents(LocalDate date) throws Exception {
         // 구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = CalendarApproach.getCalendarService();

@@ -56,9 +56,14 @@ public class CalendarController {
     }
 
     @GetMapping("/events/week")
-    @Operation(summary = "모든 예약 불러오기")
-    public ResponseEntity<?> getWeekCalendarEvents(@RequestParam(name="date") LocalDate date) throws Exception {
-        return calendarGetService.getWeekCalendarEvents(date);
+
+    public ResponseEntity<?> getWeekCalendarEvents(@RequestParam("startDate") String startDateStr) {
+        try {
+            LocalDate date = LocalDate.parse(startDateStr);
+            return calendarGetService.getWeekCalendarEvents(date);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Invalid Input Value.");
+        }
     }
 
     @GetMapping("/check/user")

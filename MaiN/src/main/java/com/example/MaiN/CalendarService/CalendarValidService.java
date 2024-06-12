@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+@Service
 
 public class CalendarValidService {
 
@@ -25,8 +27,10 @@ public class CalendarValidService {
     private UserRepository userRepository;
     @Autowired
     private ReservAssignRepository reservAssignRepository;
+    @Autowired
+    private CalendarGetService calendarGetService;
 
-    public static void checkDuration(DateTime startDateTime, DateTime endDateTime) throws CalendarService.CustomException {
+    public void checkDuration(DateTime startDateTime, DateTime endDateTime) throws CalendarService.CustomException {
         long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
         long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
         if (durationInMillis > twoHoursInMillis) {
@@ -34,7 +38,7 @@ public class CalendarValidService {
         }
     }
     // 해당 주에 해당하는 예약만 필터링
-    public static void checkEventsPerWeek(int userId, LocalDate date){
+    public void checkEventsPerWeek(int userId, LocalDate date){
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
         List<Event> reservations = reservRepository.findByUserId(userId);
@@ -50,8 +54,8 @@ public class CalendarValidService {
         }
     }
 
-    public static void checkEventOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate) throws Exception {
-        ResponseEntity<?> response = CalendarGetService.getCalendarEvents(startDate);
+    public void checkEventOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate) throws Exception {
+        ResponseEntity<?> response = calendarGetService.getCalendarEvents(startDate);
         List<Map<String, Object>> existingEventsJson = new ArrayList<>();
         if (response.getBody() instanceof List<?>) {
             List<?> rawList = (List<?>) response.getBody();
@@ -73,7 +77,7 @@ public class CalendarValidService {
             }
         }
     }
-    public static void checkEventsPerMonth(LocalDate date) throws CalendarService.CustomException {
+    public void checkEventsPerMonth(LocalDate date) throws CalendarService.CustomException {
         LocalDate today = LocalDate.now();
         LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
