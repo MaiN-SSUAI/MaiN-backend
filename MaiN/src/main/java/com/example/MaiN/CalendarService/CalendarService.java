@@ -26,15 +26,8 @@ public class CalendarService {
     private UserRepository userRepository;
     @Autowired
     private ReservAssignRepository reservAssignRepository;
-
     @Autowired
     private CalendarValidService calendarValidService;
-
-    public static class CustomException extends RuntimeException {
-        public CustomException(String message) {
-            super(message);
-        }
-    }
     // 예약 추가하기 (주최자)
     public String addOrganizeEvent(String studentId, int userId, String purpose, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = CalendarApproach.getCalendarService();
