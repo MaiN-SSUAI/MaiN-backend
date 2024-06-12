@@ -1,14 +1,14 @@
 package com.example.MaiN.controller;
 
+import com.example.MaiN.CalendarService.CalendarGetService;
 import com.example.MaiN.dto.EventAssignDto;
 import com.example.MaiN.dto.EventDto;
-import com.example.MaiN.dto.UserDto;
 import com.example.MaiN.entity.Event;
 import com.example.MaiN.entity.EventAssign;
 import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.UserRepository;
-import com.example.MaiN.service.CalendarService;
+import com.example.MaiN.CalendarService.CalendarService;
 import com.example.MaiN.repository.ReservRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -36,23 +35,30 @@ public class CalendarController {
     @Autowired
     private CalendarService calendarService;
     @Autowired
+    private CalendarGetService calendarGetService;
+    @Autowired
     private UserRepository userRepository;
 
     public CalendarController(ReservRepository seminarReservRepository) {
         reservRepository = seminarReservRepository;
     }
 
+    @GetMapping("dev")
+    @Operation(summary = "개발자 테스트 코드")
+    public List devGet(@RequestParam(name="date") LocalDate date)throws Exception {
+        return calendarGetService.devGet(date);
+    }
     //특정 날짜 일정 보기
     @GetMapping("/events")
     @Operation(summary = "모든 예약 불러오기")
     public ResponseEntity<?> getCalendarEvents(@RequestParam(name="date") LocalDate date) throws Exception {
-        return calendarService.getCalendarEvents(date);
+        return calendarGetService.getCalendarEvents(date);
     }
 
     @GetMapping("/events/week")
     @Operation(summary = "모든 예약 불러오기")
     public ResponseEntity<?> getWeekCalendarEvents(@RequestParam(name="date") LocalDate date) throws Exception {
-        return calendarService.getWeekCalendarEvents(date);
+        return calendarGetService.getWeekCalendarEvents(date);
     }
 
     @GetMapping("/check/user")
