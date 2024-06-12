@@ -56,6 +56,7 @@ public class CalendarController {
             LocalDate date = LocalDate.parse(startDateStr);
             return calendarGetService.getWeekCalendarEvents(date);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Invalid Input Value.");
         }
     }
