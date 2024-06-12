@@ -1,11 +1,14 @@
 package com.example.MaiN.CalendarService;
 
+import com.example.MaiN.Exception.CustomErrorCode;
+import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.entity.Event;
 import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.DateTime;
+import okhttp3.internal.http2.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -29,11 +32,11 @@ public class CalendarValidService {
     @Autowired
     private CalendarGetService calendarGetService;
 
-    public void checkDuration(DateTime startDateTime, DateTime endDateTime) throws CalendarService.CustomException {
+    public void checkDuration(DateTime startDateTime, DateTime endDateTime) throws CustomException {
         long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
         long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
         if (durationInMillis > twoHoursInMillis) {
-            throw new CalendarService.CustomException("More than 2 hours");
+            throw new CustomException("예약하고자 하는 시간이 2시간을 넘김", CustomErrorCode.MORE_THAN_2HOURS);
         }
     }
     // 해당 주에 해당하는 예약만 필터링
@@ -49,7 +52,7 @@ public class CalendarValidService {
                 .count();
 
         if (countThisWeek >= 2) {
-            throw new CalendarService.CustomException("More than 2 appointments a week");
+            throw new CustomException("해당 주에 2번 이상의 예약을 시도함", CustomErrorCode.MORE_THAN_2APPOINTS);
         }
     }
 
@@ -71,17 +74,17 @@ public class CalendarValidService {
                 DateTime existingEnd = new DateTime((String) event.get("end"));
                 if (startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()) {
                     // 겹치는 이벤트 발견하면 -> 로그 띄움
-                    throw new CalendarService.CustomException("Event Overlaps");
+                    throw new CustomException("해당 시간에 겹치는 이벤트가 있음", CustomErrorCode.EVENT_OVERLAPS);
                 }
             }
         }
     }
-    public void checkEventsPerMonth(LocalDate date) throws CalendarService.CustomException {
+    public void checkEventsPerMonth(LocalDate date) throws CustomException {
         LocalDate today = LocalDate.now();
         LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
         if (date.isBefore(startOfThisMonth)|| date.isAfter(endOfNextMonth)) {
-            throw new CalendarService.CustomException("Reservation can only be made for this month and the next month");
+            throw new CustomException("localTime을 기준으로 해당 달과 그 다음 달까지만 예약이 가능함", CustomErrorCode.OUT_OF_DURATION);
         }
     }
 }

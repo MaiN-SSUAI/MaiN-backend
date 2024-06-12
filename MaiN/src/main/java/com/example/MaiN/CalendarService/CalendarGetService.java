@@ -78,25 +78,6 @@ public class CalendarGetService {
         }
         return map;
     }
-
-    public List<Event> devGet(LocalDate date) throws Exception {
-        Calendar service = CalendarApproach.getCalendarService();
-        // 입력받은 날짜를 이용해 그 날의 시작 시간과 끝 시간을 DateTime 형식으로 변환
-        DateTime startOfDay = new DateTime(date.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-        DateTime endOfDay = new DateTime(date.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-
-        // 캘린더에서 날짜 범위에 해당하는 이벤트들을 가져옴
-        Events events = service.events().list(CALENDAR_ID)
-                .setTimeMin(startOfDay)
-                .setTimeMax(endOfDay)
-                .setOrderBy("startTime")
-                .setSingleEvents(true)
-                .execute();
-
-        // 가져온 이벤트들을 리스트에 저장
-        return events.getItems();
-    }
-
     //GET
     public ResponseEntity<?> getCalendarEvents(LocalDate date) throws Exception {
         //Calendar 객체 생성
