@@ -42,12 +42,6 @@ public class CalendarController {
     public CalendarController(ReservRepository seminarReservRepository) {
         reservRepository = seminarReservRepository;
     }
-
-    @GetMapping("dev")
-    @Operation(summary = "개발자 테스트 코드")
-    public List devGet(@RequestParam(name="date") LocalDate date)throws Exception {
-        return calendarGetService.devGet(date);
-    }
     //특정 날짜 일정 보기
     @GetMapping("/events")
     @Operation(summary = "모든 예약 불러오기")
@@ -57,7 +51,7 @@ public class CalendarController {
 
     @GetMapping("/events/week")
 
-    public ResponseEntity<?> getWeekCalendarEvents(@RequestParam("startDate") String startDateStr) {
+    public ResponseEntity<?> getWeekCalendarEvents(@RequestParam("date") String startDateStr) {
         try {
             LocalDate date = LocalDate.parse(startDateStr);
             return calendarGetService.getWeekCalendarEvents(date);
@@ -108,7 +102,6 @@ public class CalendarController {
         }
         return "success";
     }
-
     //삭제
     @DeleteMapping("/delete/{Id}")
     @Operation(summary = "예약 삭제")

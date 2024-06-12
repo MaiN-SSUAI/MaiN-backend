@@ -21,7 +21,7 @@ public class SsucatchNotiCrawler implements Job {
         int page = 1;
 
         try (Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://main-db.cb6mac662yc2.us-east-1.rds.amazonaws.com/main_schema",
+                "jdbc:mysql://main-db.cb6mac662yc2.us-east-1.rds.amazonaws.com/main_db",
                 "admin", "wodudtnalsduswo1228")) {
             conn.setAutoCommit(false);
 
