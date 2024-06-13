@@ -39,7 +39,7 @@ public class CalendarService {
         calendarValidService.checkDuration(startDateTime, endDateTime);
         calendarValidService.checkEventOverlaps(startDateTime, endDateTime, startDate);
         System.out.println("Total reservations for student ID " + userId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
-        String summary = String.format("세미나실1/%s", studentId);
+        String summary = String.format("세미나실2/%s", studentId);
         Event event = new Event().setSummary(summary);
         EventDateTime start = new EventDateTime()
                 .setDateTime(startDateTime)
@@ -59,7 +59,7 @@ public class CalendarService {
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
-        String summary = String.format("세미나실1/%s", studentId);
+        String summary = String.format("세미나실2/%s", studentId);
         Event event = new Event().setSummary(summary);
 
         EventDateTime start = new EventDateTime()

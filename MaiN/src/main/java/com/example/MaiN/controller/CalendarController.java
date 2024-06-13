@@ -1,6 +1,8 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.CalendarService.CalendarGetService;
+import com.example.MaiN.Exception.CustomErrorCode;
+import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.dto.EventAssignDto;
 import com.example.MaiN.dto.EventDto;
 import com.example.MaiN.entity.Event;
@@ -69,6 +71,9 @@ public class CalendarController {
     @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
+        if (eventDto.getStudentIds().size() < 2){
+            throw new CustomException("1인 예약 불가", CustomErrorCode.RESERVATION_ONE_PERSON);
+        }
         List<String> studentIds = eventDto.getStudentIds();
         int reservId = 0;
         for (int i = 0; i<studentIds.size(); i++) {
