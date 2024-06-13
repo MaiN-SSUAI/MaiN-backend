@@ -105,7 +105,7 @@ public class CalendarGetService {
             String summary = event.getSummary();
             // 특정 문자열이 포함된 장소에 예약된 이벤트만 필터링
             String[] parts = summary.split("/");
-            if (parts.length > 0 && parts[0].contains("1")) {
+            if (parts.length > 0 && parts[0].contains("2")) {
                 EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
                 int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
 
@@ -181,7 +181,7 @@ public class CalendarGetService {
                 String summary = event.getSummary();
 
                 String[] parts = summary.split("/");
-                if (parts.length > 0 && parts[0].contains("1")) {
+                if (parts.length > 0 && parts[0].contains("2")) {
                     EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
                     int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
 
