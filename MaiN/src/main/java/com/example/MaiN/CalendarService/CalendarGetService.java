@@ -56,10 +56,6 @@ public class CalendarGetService {
         LocalDate eventStartDate = startLocalDateTime.toLocalDate();
         LocalDate eventEndDate = endLocalDateTime.toLocalDate();
 
-        //11시 59분
-        LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
-        DateTime timeAt1159 = new DateTime(dateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-
         //입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
         if (date.isEqual(eventStartDate)) {
             map.put("start_pixel", calPixel(event.getStart().getDateTime()));
@@ -74,7 +70,7 @@ public class CalendarGetService {
         }
         //입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
         else if (date.isBefore(eventEndDate)) {
-            map.put("end_pixel", calPixel(timeAt1159));
+            map.put("end_pixel","864");
         }
         return map;
     }
