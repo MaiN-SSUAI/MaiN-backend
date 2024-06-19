@@ -3,17 +3,23 @@ package com.example.MaiN.security;
 
 //import com.example.MaiN.dto.ValidateReturnDto;
 import com.example.MaiN.service.UsersService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.util.StringUtils;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.swing.text.html.Option;
@@ -27,13 +33,15 @@ public class JWTFilter extends OncePerRequestFilter {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String PREFIX = "Bearer";
 
+
     private final JWTProvider jwtProvider;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        if (path.equals("/users/login") || path.startsWith("/swagger") || path.startsWith("/api-docs") || path.startsWith("/v3")) {
+        if (path.equals("/users/login") || path.startsWith("/swagger") || path.startsWith("/api-docs") || path.startsWith("/v3") || path.equals("/users/reissue")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -42,8 +50,7 @@ public class JWTFilter extends OncePerRequestFilter {
             String accessToken = getAccessToken(request);
 
             if (accessToken == null) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("No token provided");
+                sendErrorResponse(response,HttpServletResponse.SC_FORBIDDEN,"No Token Provided");
                 return;
             }
 
@@ -53,13 +60,11 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         } catch (ExpiredJwtException e) {
             SecurityContextHolder.clearContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Token expired");
+            sendErrorResponse(response,HttpServletResponse.SC_UNAUTHORIZED,"Token Expired");
             return;
         } catch (Exception e) {
             SecurityContextHolder.clearContext();
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("An internal error occurred");
+            sendErrorResponse(response,HttpServletResponse.SC_FORBIDDEN,"Wrong Token");
             return;
         }
 
@@ -72,5 +77,30 @@ public class JWTFilter extends OncePerRequestFilter {
             return bearerToken.split(" ")[1].trim();
         }
         return null;
+    }
+
+    private void sendErrorResponse(HttpServletResponse response,int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        ErrorResponse errorResponse = new ErrorResponse(status,message);
+        String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+
+        response.getWriter().write(jsonResponse);
+
+    }
+
+    @Getter
+    public static class ErrorResponse{
+        private final int status;
+        private final String message;
+
+
+        public ErrorResponse(int status, String message) {
+            this.status = status;
+            this.message = message;
+        }
+
     }
 }
