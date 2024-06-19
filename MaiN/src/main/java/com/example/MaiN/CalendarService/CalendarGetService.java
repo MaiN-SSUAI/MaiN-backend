@@ -14,6 +14,9 @@ import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Service
 public class CalendarGetService {
@@ -143,14 +146,10 @@ public class CalendarGetService {
     }
 
     public ResponseEntity<?> getWeekCalendarEvents(LocalDate date) throws Exception {
-        // 구글 캘린더 서비스에 접근할 수 있는 Calendar 객체 생성
         Calendar service = CalendarApproach.getCalendarService();
-
-        // startOfWeek = 월요일, endOfWeek = 일요일
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        // 요일별 이벤트를 저장할 맵
         Map<String, List<Map<String, Object>>> weeklyEvents = new LinkedHashMap<>();
         weeklyEvents.put("Mon", new ArrayList<>());
         weeklyEvents.put("Tue", new ArrayList<>());
@@ -160,60 +159,73 @@ public class CalendarGetService {
         weeklyEvents.put("Sat", new ArrayList<>());
         weeklyEvents.put("Sun", new ArrayList<>());
 
-        // 날짜 하나씩 돌기
+        ExecutorService executor = Executors.newFixedThreadPool(7);
+        List<Future<Map<String, List<Map<String, Object>>>>> futures = new ArrayList<>();
+
         for (LocalDate currentDate = startOfWeek; !currentDate.isAfter(endOfWeek); currentDate = currentDate.plusDays(1)) {
-            DateTime startOfDay = new DateTime(currentDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-            DateTime endOfDay = new DateTime(currentDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+            LocalDate finalCurrentDate = currentDate;
+            Future<Map<String, List<Map<String, Object>>>> future = executor.submit(() -> {
+                DateTime startOfDay = new DateTime(finalCurrentDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+                DateTime endOfDay = new DateTime(finalCurrentDate.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
 
-            Events events = service.events().list(CALENDAR_ID)
-                    .setTimeMin(startOfDay)
-                    .setTimeMax(endOfDay)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute();
-            // 가져온 이벤트들을 리스트에 저장
-            List<Event> eventsList = events.getItems();
+                Events events = service.events().list(CALENDAR_ID)
+                        .setTimeMin(startOfDay)
+                        .setTimeMax(endOfDay)
+                        .setOrderBy("startTime")
+                        .setSingleEvents(true)
+                        .execute();
 
-            Map<Integer, Map<String, Object>> useGoogleEventsMap = new LinkedHashMap<>(); // useGoogleEventsMap 은 reservId가 0으로 객체 하나로 합칠 필요 X
-            List<Map<String, Object>> useAppEventsList = new ArrayList<>(); // useAppEventsList는 여러명 예약으로 객체를 하나로 합칠 필요 O
+                List<Event> eventsList = events.getItems();
+                Map<Integer, Map<String, Object>> useGoogleEventsMap = new LinkedHashMap<>();
+                List<Map<String, Object>> useAppEventsList = new ArrayList<>();
 
-            for (Event event : eventsList) {
-                String summary = event.getSummary();
+                for (Event event : eventsList) {
+                    String summary = event.getSummary();
+                    String[] parts = summary.split("/");
+                    if (parts.length > 0 && parts[0].contains("2")) {
+                        EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
+                        int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
+                        Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId);
+                        String studentNo = parts[1];
 
-                String[] parts = summary.split("/");
-                if (parts.length > 0 && parts[0].contains("2")) {
-                    EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
-                    int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
-
-                    // 이벤트를 맵으로 변환
-                    Map<String, Object> eventMap = toMap(event, currentDate, reservId);
-                    String studentNo = parts[1];
-
-                    if (reservId == 0) {
-                        List<String> studentNos = new ArrayList<>();
-                        studentNos.add(studentNo);
-                        eventMap.put("studentNo", studentNos);
-                        useAppEventsList.add(eventMap);
-                    } else {
-                        if (useGoogleEventsMap.containsKey(reservId)) {
-                            Map<String, Object> existingEventMap = useGoogleEventsMap.get(reservId);
-                            List<String> studentNos = (List<String>) existingEventMap.get("studentNo");
-                            studentNos.add(studentNo);
-                        } else {
+                        if (reservId == 0) {
                             List<String> studentNos = new ArrayList<>();
                             studentNos.add(studentNo);
                             eventMap.put("studentNo", studentNos);
-                            useGoogleEventsMap.put(reservId, eventMap);
+                            useAppEventsList.add(eventMap);
+                        } else {
+                            if (useGoogleEventsMap.containsKey(reservId)) {
+                                Map<String, Object> existingEventMap = useGoogleEventsMap.get(reservId);
+                                List<String> studentNos = (List<String>) existingEventMap.get("studentNo");
+                                studentNos.add(studentNo);
+                            } else {
+                                List<String> studentNos = new ArrayList<>();
+                                studentNos.add(studentNo);
+                                eventMap.put("studentNo", studentNos);
+                                useGoogleEventsMap.put(reservId, eventMap);
+                            }
                         }
                     }
                 }
-            }
-            // 리스트에 합치기
-            String dayOfWeek = currentDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3);
-            weeklyEvents.get(dayOfWeek).addAll(useGoogleEventsMap.values());
-            weeklyEvents.get(dayOfWeek).addAll(useAppEventsList);
+
+                String dayOfWeek = finalCurrentDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3);
+                Map<String, List<Map<String, Object>>> dayEvents = new LinkedHashMap<>();
+                dayEvents.put(dayOfWeek, new ArrayList<>(useGoogleEventsMap.values()));
+                dayEvents.get(dayOfWeek).addAll(useAppEventsList);
+
+                return dayEvents;
+            });
+            futures.add(future);
         }
 
+        for (Future<Map<String, List<Map<String, Object>>>> future : futures) {
+            Map<String, List<Map<String, Object>>> dayEvents = future.get();
+            for (Map.Entry<String, List<Map<String, Object>>> entry : dayEvents.entrySet()) {
+                weeklyEvents.get(entry.getKey()).addAll(entry.getValue());
+            }
+        }
+
+        executor.shutdown();
         return ResponseEntity.ok(weeklyEvents);
     }
 }

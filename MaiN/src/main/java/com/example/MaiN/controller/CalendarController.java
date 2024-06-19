@@ -13,6 +13,7 @@ import com.example.MaiN.repository.UserRepository;
 import com.example.MaiN.CalendarService.CalendarService;
 import com.example.MaiN.repository.ReservRepository;
 
+import com.google.api.client.util.DateTime;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,6 @@ public class CalendarController {
     }
 
     @GetMapping("/events/week")
-
     public ResponseEntity<?> getWeekCalendarEvents(@RequestParam("date") String startDateStr) {
         try {
             LocalDate date = LocalDate.parse(startDateStr);
