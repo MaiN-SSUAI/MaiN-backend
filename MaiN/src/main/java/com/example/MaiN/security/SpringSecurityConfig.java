@@ -39,7 +39,7 @@ public class SpringSecurityConfig {
                 .sessionManagement(AbstractHttpConfigurer::disable) //세션 사용하지 않음
                 .cors(Customizer.withDefaults()) //CORS 기본으로 설정
                 .authorizeHttpRequests((authorizeRequests) ->
-                        authorizeRequests.requestMatchers("/users/login").permitAll()//이 API는 요청 허용
+                        authorizeRequests.requestMatchers("/users/login","/users/reissue").permitAll()//이 API는 요청 허용
                                 .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()) //나머지 API 는 인증이 되어야 요청 가능
                 .exceptionHandling((exceptionHandling) -> exceptionHandling
