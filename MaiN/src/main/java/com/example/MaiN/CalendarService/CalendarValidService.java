@@ -36,7 +36,7 @@ public class CalendarValidService {
         long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
         long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
         if (durationInMillis > twoHoursInMillis) {
-            throw new CustomException("예약하고자 하는 시간이 2시간을 넘김", CustomErrorCode.MORE_THAN_2HOURS);
+            throw new CustomException("회당 2시간 이상 예약이 불가합니다.", CustomErrorCode.MORE_THAN_2HOURS);
         }
     }
     // 해당 주에 해당하는 예약만 필터링
@@ -52,7 +52,7 @@ public class CalendarValidService {
                 .count();
 
         if (countThisWeek >= 2) {
-            throw new CustomException("해당 주에 2번 이상의 예약을 시도함", CustomErrorCode.MORE_THAN_2APPOINTS);
+            throw new CustomException("주당 3회 이상 예약이 불가합니다.", CustomErrorCode.MORE_THAN_2APPOINTS);
         }
     }
 
@@ -74,7 +74,7 @@ public class CalendarValidService {
                 DateTime existingEnd = new DateTime((String) event.get("end"));
                 if (startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()) {
                     // 겹치는 이벤트 발견하면 -> 로그 띄움
-                    throw new CustomException("해당 시간에 겹치는 이벤트가 있음", CustomErrorCode.EVENT_OVERLAPS);
+                    throw new CustomException("이미 예약된 일정이 있습니다.", CustomErrorCode.EVENT_OVERLAPS);
                 }
             }
         }
@@ -84,7 +84,7 @@ public class CalendarValidService {
         LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
         if (date.isBefore(startOfThisMonth)|| date.isAfter(endOfNextMonth)) {
-            throw new CustomException("localTime을 기준으로 해당 달과 그 다음 달까지만 예약이 가능함", CustomErrorCode.OUT_OF_DURATION);
+            throw new CustomException("매달 1일 기준 다음 달까지만 예약이 가능합니다.", CustomErrorCode.OUT_OF_DURATION);
         }
     }
 }
