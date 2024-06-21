@@ -2,7 +2,8 @@ package com.example.MaiN.CalendarService;
 
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
-import com.example.MaiN.entity.Event;
+//import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
@@ -43,7 +44,7 @@ public class CalendarValidService {
     public void checkEventsPerWeek(int userId, LocalDate date){
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        List<Event> reservations = reservRepository.findByUserId(userId);
+        List<Reserv> reservations = reservRepository.findByUserId(userId);
         long countThisWeek = reservations.stream()
                 .filter(r -> {
                     LocalDate reservationDate = LocalDate.parse(r.getStartTime().split("T")[0], DateTimeFormatter.ISO_DATE);

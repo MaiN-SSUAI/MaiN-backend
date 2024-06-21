@@ -184,7 +184,6 @@ public class UsersService {
 
     public TokenDto login(@NotNull LoginRequestDto loginRequestDto) {
         String stdNo = loginRequestDto.getstudentNo();
-        String stdName = loginRequestDto.getstudentName();
         String accessToken = jwtProvider.generateAccessToken(stdNo);
         String refreshToken = jwtProvider.generateRefreshToken();
 

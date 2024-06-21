@@ -1,5 +1,5 @@
 package com.example.MaiN.repository;
-import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.entity.EventAssign;
 
 import org.springframework.data.jpa.repository.JpaRepository;

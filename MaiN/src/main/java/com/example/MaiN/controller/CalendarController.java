@@ -5,7 +5,7 @@ import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.dto.EventAssignDto;
 import com.example.MaiN.dto.EventDto;
-import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.entity.EventAssign;
 import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.ReservAssignRepository;
@@ -83,8 +83,8 @@ public class CalendarController {
                 User user = userOptional.orElse(null);
                 int userId = user.getId();
                 String eventId = calendarService.addOrganizeEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-                Event event = eventDto.toEntity(userId);
-                Event saved = reservRepository.save(event); //대표 이벤트 저장
+                Reserv event = eventDto.toEntity(userId);
+                Reserv saved = reservRepository.save(event); //대표 이벤트 저장
                 reservId = saved.getId();
                 EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId);
                 EventAssign eventOther = eventAssignDto.toEntity(); //대표 이벤트를 나머지 이벤트에 한번 더 저장 (삭제용)
@@ -119,9 +119,9 @@ public class CalendarController {
                 reservAssignRepository.delete(eventAssign);
                 calendarService.deleteCalendarEvents(eventId);
             }
-            Optional<Event> target = reservRepository.findById(id);
+            Optional<Reserv> target = reservRepository.findById(id);
             if (target.isPresent()) {
-                Event event = target.get();
+                Reserv event = target.get();
                 reservRepository.delete(event);
             }
             return "Events deleted successfully";
