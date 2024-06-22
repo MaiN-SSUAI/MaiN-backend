@@ -45,16 +45,17 @@ public class UsersService {
     }
 
     public void addUser(String stdNo,String stdName){
-        //해당 학번이 이미 db 에 저장되어 있는지 확인
+        // 해당 학번이 이미 db에 저장되어 있는지 확인
         User foundUser = userRepository.findByNo(stdNo);
-
         if(foundUser == null){
             User user = new User();
             user.setStudentNo(stdNo);
             user.setStudentName(stdName);
             userRepository.save(user);
+        } else if (foundUser.getStudentName().isEmpty()) {      // db에 저장되어 있을 때 이름이 비어있으면 추가
+            foundUser.setStudentName(stdName);
+            userRepository.save(foundUser);
         }
-
     }
 
     //okhttp request 객체 생성
@@ -173,7 +174,7 @@ public class UsersService {
                     stdNo = strong.text();
                 }
 
-                addUser(stdNo,stdName); //파싱한 학번,이름 저장
+                addUser(stdNo,stdName); //파싱한 학번, 이름 저장
 
             }
 
@@ -183,10 +184,11 @@ public class UsersService {
 
     public TokenDto login(@NotNull LoginRequestDto loginRequestDto) {
         String stdNo = loginRequestDto.getstudentNo();
+        String stdName = loginRequestDto.getstudentName();
         String accessToken = jwtProvider.generateAccessToken(stdNo);
         String refreshToken = jwtProvider.generateRefreshToken();
 
-        //refresh token 을 db 에 저장
+        //refresh token을 db 에 저장
         //Optional<User> userOptional = userRepository.findByStudentNo(stdNo);
         Optional<User> userOptional = Optional.ofNullable(userRepository.findByNo((stdNo)));
         if(userOptional.isEmpty()){

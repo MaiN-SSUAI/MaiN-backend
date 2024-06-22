@@ -77,7 +77,7 @@ public class CalendarController {
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
         if (eventDto.getStudentIds().size() < 2){
-            throw new CustomException("1인 예약 불가", CustomErrorCode.RESERVATION_ONE_PERSON);
+            throw new CustomException("최소 2인 이상 예약해야 합니다.", CustomErrorCode.RESERVATION_ONE_PERSON);
         }
         List<String> studentIds = eventDto.getStudentIds();
         int reservId = 0;
