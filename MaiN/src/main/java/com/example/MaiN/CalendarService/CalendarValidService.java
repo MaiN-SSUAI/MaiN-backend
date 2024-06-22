@@ -3,6 +3,7 @@ package com.example.MaiN.CalendarService;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.EventAssign;
 import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
@@ -20,6 +21,8 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 @Service
 public class CalendarValidService {
 
@@ -40,19 +43,29 @@ public class CalendarValidService {
         }
     }
     // 해당 주에 해당하는 예약만 필터링
-    public void checkEventsPerWeek(int userId, LocalDate date){
+    public void checkEventsPerWeek(String studentId, int userId, LocalDate date) {
+        System.out.println("student ID " + studentId + " userID " + userId);
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        List<Event> reservations = reservRepository.findByUserId(userId);
-        long countThisWeek = reservations.stream()
+        List<EventAssign> reservAssign = reservAssignRepository.findByUserId(userId);
+        List<Integer> reservList = new ArrayList<>();
+        for (EventAssign eventAssign : reservAssign) {
+            reservList.add(eventAssign.getReservId());
+        }
+        List<Event> reserv = new ArrayList<>();
+        for (Integer a : reservList) {
+            reserv.add(reservRepository.findByReservId(a));
+        }
+        long countThisWeek = reserv.stream()
                 .filter(r -> {
                     LocalDate reservationDate = LocalDate.parse(r.getStartTime().split("T")[0], DateTimeFormatter.ISO_DATE);
                     return !reservationDate.isBefore(startOfWeek) && !reservationDate.isAfter(endOfWeek);
                 })
                 .count();
-
+        System.out.println("Total reservations for student ID " + userId + " is " + countThisWeek);
+        String text = studentId + "학생이 주에 2번 이상의 예약을 시도함";
         if (countThisWeek >= 2) {
-            throw new CustomException("해당 주에 2번 이상의 예약을 시도함", CustomErrorCode.MORE_THAN_2APPOINTS);
+            throw new CustomException(text, CustomErrorCode.MORE_THAN_2APPOINTS);
         }
     }
 
