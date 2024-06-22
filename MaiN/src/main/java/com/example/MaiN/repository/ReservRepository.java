@@ -10,4 +10,7 @@ import java.util.List;
 public interface ReservRepository extends CrudRepository<Event,Integer> {
     @Query("SELECT e FROM Event e WHERE e.userId = :userId")
     List<Event> findByUserId(@Param("userId") int userId);
+
+    @Query("SELECT e FROM Event e WHERE e.id = :id")
+    Event findByReservId(@Param("id") int reservId);
 }
