@@ -1,6 +1,5 @@
 package com.example.MaiN.controller;
 
-import com.example.MaiN.CalendarService.CalendarApproach;
 import com.example.MaiN.CalendarService.CalendarGetService;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
@@ -14,8 +13,6 @@ import com.example.MaiN.repository.UserRepository;
 import com.example.MaiN.CalendarService.CalendarService;
 import com.example.MaiN.repository.ReservRepository;
 
-import com.google.api.client.util.DateTime;
-import com.google.api.services.calendar.Calendar;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +20,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -69,13 +64,13 @@ public class CalendarController {
 
     @GetMapping("/check/user")
     @Operation(summary = "세미나실 사용자 등록")
-    public ResponseEntity<?> addUsers(@RequestParam("user") String user, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+    public ResponseEntity<?> addUsers(@RequestParam("user") String user, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         calendarService.checkUser(user, date);
         return ResponseEntity.ok("Valid User");
     }
     @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
-    public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
+    public String addEvent(@RequestBody EventDto eventDto) throws Exception {
         if (eventDto.getStudentIds().size() < 2){
             throw new CustomException("최소 2인 이상 예약해야 합니다.", CustomErrorCode.RESERVATION_ONE_PERSON);
         }
@@ -87,7 +82,7 @@ public class CalendarController {
                 Optional<User> userOptional = userRepository.findByStudentNo(studentId);
                 User user = userOptional.orElse(null);
                 int userId = user.getId();
-                String eventId = calendarService.addOrganizeEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                String eventId = calendarService.addOrganizeEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
                 Event event = eventDto.toEntity(userId);
                 Event saved = reservRepository.save(event); //대표 이벤트 저장
                 reservId = saved.getId();
@@ -96,7 +91,6 @@ public class CalendarController {
                 reservAssignRepository.save(eventOther);
             }
             else {
-                Calendar service = CalendarApproach.getCalendarService();
                 int userId;
                 String studentId = studentIds.get(i);
                 Optional<User> userOptional = userRepository.findByStudentNo(studentId);
@@ -104,20 +98,16 @@ public class CalendarController {
 
                 if(user == null){
                     userId = 1;
-                    calendarService.addUniformedUser(studentId);
+                    calendarService.addUninformedUser(studentId);
                 } //정보 없는 학생일 경우 userId = 1
                 else{ userId = user.getId(); } //정보 있는 학생일 경우 정보 가져옴
 
-                String eventId = calendarService.addEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                String eventId = calendarService.addEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
 
                 EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId); //나머지 이벤트 저장
                 EventAssign eventOther = eventAssignDto.toEntity();
                 reservAssignRepository.save(eventOther);
-                String summary = String.format("세미나실2/%s", studentId);
-                com.google.api.services.calendar.model.Event event = new com.google.api.services.calendar.model.Event().setSummary(summary);
-                event = service.events().insert(CALENDAR_ID, event).execute();
             }
-
         }
         return "success";
     }
