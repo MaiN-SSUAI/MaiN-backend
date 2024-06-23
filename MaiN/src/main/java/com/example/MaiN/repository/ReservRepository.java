@@ -12,8 +12,8 @@ import java.util.List;
 
 public interface ReservRepository extends CrudRepository<Reserv, Integer> {
     @Query("SELECT e FROM Reserv e WHERE e.userId = :userId")
-    List<Event> findByUserId(@Param("userId") int userId);
+    List<Reserv> findByUserId(@Param("userId") int userId);
 
     @Query("SELECT e FROM Reserv e WHERE e.id = :id")
-    Event findByReservId(@Param("id") int reservId);
+    Reserv findByReservId(@Param("id") int reservId);
 }
