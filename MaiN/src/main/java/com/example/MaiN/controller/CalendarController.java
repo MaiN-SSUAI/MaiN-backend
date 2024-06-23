@@ -83,7 +83,7 @@ public class CalendarController {
                 User user = userOptional.orElse(null);
                 int userId = user.getId();
 
-                String eventId = calendarService.addOrganizeEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                String eventId = calendarService.addOrganizeEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
                 Reserv event = eventDto.toEntity(userId);
                 Reserv saved = reservRepository.save(event); //대표 이벤트 저장
                 reservId = saved.getId();
