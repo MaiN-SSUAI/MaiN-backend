@@ -1,5 +1,6 @@
 package com.example.MaiN.controller;
 
+import com.example.MaiN.CalendarService.CalendarApproach;
 import com.example.MaiN.CalendarService.CalendarGetService;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
@@ -14,6 +15,7 @@ import com.example.MaiN.CalendarService.CalendarService;
 import com.example.MaiN.repository.ReservRepository;
 
 import com.google.api.client.util.DateTime;
+import com.google.api.services.calendar.Calendar;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,8 @@ public class CalendarController {
     @Autowired
     private UserRepository userRepository;
 
+    private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com";
+
     public CalendarController(ReservRepository seminarReservRepository) {
         reservRepository = seminarReservRepository;
     }
@@ -66,13 +70,14 @@ public class CalendarController {
     @GetMapping("/check/user")
     @Operation(summary = "세미나실 사용자 등록")
     public ResponseEntity<?> addUsers(@RequestParam("user") String user, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        return calendarService.checkUser(user, date);
+        calendarService.checkUser(user, date);
+        return ResponseEntity.ok("Valid User");
     }
     @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws IOException, GeneralSecurityException, Exception {
         if (eventDto.getStudentIds().size() < 2){
-            throw new CustomException("1인 예약 불가", CustomErrorCode.RESERVATION_ONE_PERSON);
+            throw new CustomException("최소 2인 이상 예약해야 합니다.", CustomErrorCode.RESERVATION_ONE_PERSON);
         }
         List<String> studentIds = eventDto.getStudentIds();
         int reservId = 0;
@@ -91,18 +96,26 @@ public class CalendarController {
                 reservAssignRepository.save(eventOther);
             }
             else {
+                Calendar service = CalendarApproach.getCalendarService();
                 int userId;
                 String studentId = studentIds.get(i);
                 Optional<User> userOptional = userRepository.findByStudentNo(studentId);
                 User user = userOptional.orElse(null);
 
-                if(user == null){ userId = 1; } //정보 없는 학생일 경우 userId = 1
+                if(user == null){
+                    userId = 1;
+                    calendarService.addUniformedUser(studentId);
+                } //정보 없는 학생일 경우 userId = 1
                 else{ userId = user.getId(); } //정보 있는 학생일 경우 정보 가져옴
 
                 String eventId = calendarService.addEvent(studentId, userId, eventDto.getPurpose(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+
                 EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId); //나머지 이벤트 저장
                 EventAssign eventOther = eventAssignDto.toEntity();
                 reservAssignRepository.save(eventOther);
+                String summary = String.format("세미나실2/%s", studentId);
+                com.google.api.services.calendar.model.Event event = new com.google.api.services.calendar.model.Event().setSummary(summary);
+                event = service.events().insert(CALENDAR_ID, event).execute();
             }
 
         }

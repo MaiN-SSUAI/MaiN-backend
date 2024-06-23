@@ -3,6 +3,7 @@ package com.example.MaiN.CalendarService;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.EventAssign;
 import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
@@ -20,6 +21,8 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 @Service
 public class CalendarValidService {
 
@@ -36,23 +39,33 @@ public class CalendarValidService {
         long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
         long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
         if (durationInMillis > twoHoursInMillis) {
-            throw new CustomException("예약하고자 하는 시간이 2시간을 넘김", CustomErrorCode.MORE_THAN_2HOURS);
+            throw new CustomException("회당 2시간 이상 예약이 불가합니다.", CustomErrorCode.MORE_THAN_2HOURS);
         }
     }
     // 해당 주에 해당하는 예약만 필터링
-    public void checkEventsPerWeek(int userId, LocalDate date){
+    public void checkEventsPerWeek(String studentId, int userId, LocalDate date) {
+        System.out.println("student ID " + studentId + " userID " + userId);
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        List<Event> reservations = reservRepository.findByUserId(userId);
-        long countThisWeek = reservations.stream()
+        List<EventAssign> reservAssign = reservAssignRepository.findByUserId(userId);
+        List<Integer> reservList = new ArrayList<>();
+        for (EventAssign eventAssign : reservAssign) {
+            reservList.add(eventAssign.getReservId());
+        }
+        List<Event> reserv = new ArrayList<>();
+        for (Integer a : reservList) {
+            reserv.add(reservRepository.findByReservId(a));
+        }
+        long countThisWeek = reserv.stream()
                 .filter(r -> {
                     LocalDate reservationDate = LocalDate.parse(r.getStartTime().split("T")[0], DateTimeFormatter.ISO_DATE);
                     return !reservationDate.isBefore(startOfWeek) && !reservationDate.isAfter(endOfWeek);
                 })
                 .count();
-
+        System.out.println("Total reservations for student ID " + userId + " is " + countThisWeek);
+        String text = studentId + "학생이 주에 2번 이상의 예약을 시도함";
         if (countThisWeek >= 2) {
-            throw new CustomException("해당 주에 2번 이상의 예약을 시도함", CustomErrorCode.MORE_THAN_2APPOINTS);
+            throw new CustomException(text, CustomErrorCode.MORE_THAN_2APPOINTS);
         }
     }
 
@@ -74,7 +87,7 @@ public class CalendarValidService {
                 DateTime existingEnd = new DateTime((String) event.get("end"));
                 if (startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()) {
                     // 겹치는 이벤트 발견하면 -> 로그 띄움
-                    throw new CustomException("해당 시간에 겹치는 이벤트가 있음", CustomErrorCode.EVENT_OVERLAPS);
+                    throw new CustomException("이미 예약된 일정이 있습니다.", CustomErrorCode.EVENT_OVERLAPS);
                 }
             }
         }
@@ -84,7 +97,7 @@ public class CalendarValidService {
         LocalDate startOfThisMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
         if (date.isBefore(startOfThisMonth)|| date.isAfter(endOfNextMonth)) {
-            throw new CustomException("localTime을 기준으로 해당 달과 그 다음 달까지만 예약이 가능함", CustomErrorCode.OUT_OF_DURATION);
+            throw new CustomException("매달 1일 기준 다음 달까지만 예약이 가능합니다.", CustomErrorCode.OUT_OF_DURATION);
         }
     }
 }

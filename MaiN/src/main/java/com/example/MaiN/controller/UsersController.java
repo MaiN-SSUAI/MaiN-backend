@@ -25,7 +25,7 @@ public class UsersController {
     public Iterable<User> list() { return usersService.findAllUsers(); }
 
     @PostMapping("/login")
-    @Operation(summary = "accessToken, refreshToken,학번 응답 받기")
+    @Operation(summary = "accessToken, refreshToken, 학번 응답 받기")
     public ResponseEntity<?> login(@RequestBody UsaintRequestDto usaintRequestDto) throws Exception {
         Map<String,Object> stdInfo = usersService.usaintAuthService(usaintRequestDto);
 
