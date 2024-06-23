@@ -113,7 +113,9 @@ public class CalendarGetService {
             if (parts.length > 0 && parts[0].contains("2")) {
                 EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
                 int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
-                String purpose = "";
+
+                Optional<Reserv> mainEvent = reservRepository.findById(reservId);
+                String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
 
                 // 이벤트를 맵으로 변환
                 Map<String, Object> eventMap = toMap(event, date, reservId, purpose);
