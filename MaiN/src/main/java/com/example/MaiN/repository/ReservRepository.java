@@ -9,8 +9,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+
 public interface ReservRepository extends CrudRepository<Reserv, Integer> {
     @Query("SELECT e FROM Reserv e WHERE e.userId = :userId")
-    List<Reserv> findByUserId(@Param("userId") int userId);
+    List<Event> findByUserId(@Param("userId") int userId);
+
+    @Query("SELECT e FROM Reserv e WHERE e.id = :id")
+    Event findByReservId(@Param("id") int reservId);
 }

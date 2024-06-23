@@ -29,32 +29,28 @@ public class CalendarService {
     @Autowired
     private CalendarValidService calendarValidService;
     // 예약 추가하기 (주최자)
-    public String addOrganizeEvent(String studentId, int userId, String purpose, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addOrganizeEvent(String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = CalendarApproach.getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
         LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
-        LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
         // 에약 제한 사항들
-        calendarValidService.checkDuration(startDateTime, endDateTime);
         calendarValidService.checkEventOverlaps(startDateTime, endDateTime, startDate);
-        System.out.println("Total reservations for student ID " + userId + " from " + startDate + startDateTime + " to " + endDate + endDateTime);
+        calendarValidService.checkDuration(startDateTime, endDateTime);
+
+        EventDateTime start = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
+        EventDateTime end = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
+
         String summary = String.format("세미나실2/%s", studentId);
         Event event = new Event().setSummary(summary);
-        EventDateTime start = new EventDateTime()
-                .setDateTime(startDateTime)
-                .setTimeZone("Asia/Seoul");
         event.setStart(start);
-        EventDateTime end = new EventDateTime()
-                .setDateTime(endDateTime)
-                .setTimeZone("Asia/Seoul");
         event.setEnd(end);
         event = service.events().insert(CALENDAR_ID, event).execute();
         return event.getId();
     }
 
     // 예약 추가하기 (주최자 제외 팀원들)
-    public String addEvent(String studentId, int userId, String purpose, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = CalendarApproach.getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
@@ -62,32 +58,33 @@ public class CalendarService {
         String summary = String.format("세미나실2/%s", studentId);
         Event event = new Event().setSummary(summary);
 
-        EventDateTime start = new EventDateTime()
-                .setDateTime(startDateTime)
-                .setTimeZone("Asia/Seoul");
+        EventDateTime start = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
+        EventDateTime end = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
+
         event.setStart(start);
-
-        EventDateTime end = new EventDateTime()
-                .setDateTime(endDateTime)
-                .setTimeZone("Asia/Seoul");
         event.setEnd(end);
-
         event = service.events().insert(CALENDAR_ID, event).execute();
         return event.getId();
     }
 
-    public ResponseEntity<?> checkUser(String studentId, LocalDate date) {
+    public void addUninformedUser(String studentId) {
+        User user = new User();
+        user.setStudentNo(studentId);
+        user.setStudentName("");
+        user.setRefreshToken("");
+        userRepository.save(user);
+        System.out.println("Unauthorized User Addition Successful");
+    }
 
+    public void checkUser(String studentId, LocalDate date) {
         Optional<User> userOptional = userRepository.findByStudentNo(studentId);
         User user = userOptional.orElse(null);
-
         if(user == null){
-            return ResponseEntity.ok("uninformed/valid user");
+            return;
         }
         int userId = user.getId();
         calendarValidService.checkEventsPerMonth(date);
-        calendarValidService.checkEventsPerWeek(userId, date);
-        return ResponseEntity.ok("informed/valid user");
+        calendarValidService.checkEventsPerWeek(studentId, userId, date);
     }
 
     public void deleteCalendarEvents(String eventId) throws Exception {

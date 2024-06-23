@@ -8,14 +8,15 @@ import lombok.*;
 @Data
 public class LoginRequestDto {
     private String studentNo;
+    private String studentName;
 
     public String getstudentNo() {
         return studentNo;
     }
 
+    public String getstudentName() { return studentName; }
+
     public void setstudentNo(String studentNo) {
         this.studentNo = studentNo;
     }
-
-
 }
