@@ -1,6 +1,6 @@
 package com.example.MaiN.dto;
 
-import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.entity.EventAssign;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
