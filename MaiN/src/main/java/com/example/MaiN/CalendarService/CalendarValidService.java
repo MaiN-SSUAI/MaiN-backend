@@ -2,7 +2,8 @@ package com.example.MaiN.CalendarService;
 
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
-import com.example.MaiN.entity.Event;
+//import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.entity.EventAssign;
 import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
@@ -47,12 +48,13 @@ public class CalendarValidService {
         System.out.println("student ID " + studentId + " userID " + userId);
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
         List<EventAssign> reservAssign = reservAssignRepository.findByUserId(userId);
         List<Integer> reservList = new ArrayList<>();
         for (EventAssign eventAssign : reservAssign) {
             reservList.add(eventAssign.getReservId());
         }
-        List<Event> reserv = new ArrayList<>();
+        List<Reserv> reserv = new ArrayList<>();
         for (Integer a : reservList) {
             reserv.add(reservRepository.findByReservId(a));
         }
