@@ -1,6 +1,7 @@
 package com.example.MaiN.controller;
 
 import com.example.MaiN.CalendarService.CalendarGetService;
+import com.example.MaiN.CalendarService.CalendarValidService;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.dto.EventAssignDto;
@@ -21,6 +22,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +40,8 @@ public class CalendarController {
     private CalendarService calendarService;
     @Autowired
     private CalendarGetService calendarGetService;
+    @Autowired
+    private CalendarValidService calendarValidService;
     @Autowired
     private UserRepository userRepository;
 
@@ -115,7 +121,10 @@ public class CalendarController {
     @DeleteMapping("/delete/{Id}")
     @Operation(summary = "예약 삭제")
     public String delete(@PathVariable("Id") int id) throws Exception {
+        calendarValidService.checkDeleteTime(id);
+
         List<EventAssign> eventAssignList = reservAssignRepository.findByReservId(id);
+
         if (!eventAssignList.isEmpty()) {
             for (EventAssign eventAssign : eventAssignList) {
                 String eventId = eventAssign.getEventId();
