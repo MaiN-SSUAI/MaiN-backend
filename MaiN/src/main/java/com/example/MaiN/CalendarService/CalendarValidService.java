@@ -15,8 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -100,6 +99,21 @@ public class CalendarValidService {
         LocalDate endOfNextMonth = today.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
         if (date.isBefore(startOfThisMonth)|| date.isAfter(endOfNextMonth)) {
             throw new CustomException("매달 1일 기준 다음 달까지만 예약이 가능합니다.", CustomErrorCode.OUT_OF_DURATION);
+        }
+    }
+
+    public void checkDeleteTime(int id) throws CustomException {
+        //"2024-06-12T01:00:00.000+09:00"
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        Event eventForCheckTime = reservRepository.findByReservId(id);
+        String eventTime = eventForCheckTime.getStartTime(); //저장된 이벤트 시간 string
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(eventTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        LocalDateTime eventDateTime = zonedDateTime.toLocalDateTime(); //저장된 이벤트 시간 localdatetime
+
+        LocalDateTime eventDateTimeAfter = eventDateTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
+
+        if (currentDateTime.isAfter(eventDateTimeAfter)) { //현재 시각이 (저장된 이벤트 시작 시간 + 30분)의 이후라면 예약 불가
+            throw new CustomException("예약 삭제가 불가합니다.", CustomErrorCode.UNABLE_TO_DELETE);
         }
     }
 }
