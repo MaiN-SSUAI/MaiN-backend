@@ -105,7 +105,7 @@ public class CalendarValidService {
     public void checkDeleteTime(int id) throws CustomException {
         //"2024-06-12T01:00:00.000+09:00"
         LocalDateTime currentDateTime = LocalDateTime.now();
-        Event eventForCheckTime = reservRepository.findByReservId(id);
+        Reserv eventForCheckTime = reservRepository.findByReservId(id);
         String eventTime = eventForCheckTime.getStartTime(); //저장된 이벤트 시간 string
         ZonedDateTime zonedDateTime = ZonedDateTime.parse(eventTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         LocalDateTime eventDateTime = zonedDateTime.toLocalDateTime(); //저장된 이벤트 시간 localdatetime
