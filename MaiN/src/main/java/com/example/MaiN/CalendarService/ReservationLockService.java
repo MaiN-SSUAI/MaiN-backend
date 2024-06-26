@@ -10,10 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ReservationLockService {
 
     private static final ConcurrentHashMap<String, Object> locks = new ConcurrentHashMap<>();
+    private static final String GLOBAL_RESERVATION_LOCK = "GLOBAL_RESERVATION_LOCK";
 
     public static <T> T executeWithLock(String startTime, String endTime, LockCallback<T> callback) throws Exception {
-        String lockKey = createLockKey(startTime, endTime);
-        Object lock = locks.computeIfAbsent(lockKey, k -> new Object());
+        String lockKey = startTime + ":" + endTime;
+        Object lock = locks.computeIfAbsent(GLOBAL_RESERVATION_LOCK, k -> new Object());
 
         synchronized (lock) {
             try {
@@ -22,19 +23,6 @@ public class ReservationLockService {
                 locks.remove(lockKey);
             }
         }
-    }
-
-    private static String createLockKey(String startTime, String endTime) {
-        ZonedDateTime start = ZonedDateTime.parse(startTime);
-        ZonedDateTime end = ZonedDateTime.parse(endTime);
-
-        StringBuilder keyBuilder = new StringBuilder();
-        ZonedDateTime current = start;
-        while (current.isBefore(end)) {
-            keyBuilder.append(current.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"))).append(":");
-            current = current.plusMinutes(10);
-        }
-        return keyBuilder.toString();
     }
 
     @FunctionalInterface
