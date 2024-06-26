@@ -32,7 +32,16 @@ public class EventDto {
                 userId,
                 this.purpose,
                 this.startDateTimeStr,
-                this.endDateTimeStr
+                this.endDateTimeStr,
+                this.eventId
         );
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+    public String getEventId() {
+        return eventId;
     }
 }

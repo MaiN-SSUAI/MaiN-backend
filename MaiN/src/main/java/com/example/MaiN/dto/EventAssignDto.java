@@ -16,13 +16,11 @@ import java.util.List;
 public class EventAssignDto {
     private int reservId;
     private int userId;
-    private String eventId;
 
     public EventAssign toEntity() {
         return new EventAssign(
                 this.reservId,
-                this.userId,
-                this.eventId
+                this.userId
         );
     }
 }

@@ -29,33 +29,21 @@ public class CalendarService {
     @Autowired
     private CalendarValidService calendarValidService;
     // 예약 추가하기 (주최자)
-    public String addOrganizeEvent(String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
-        Calendar service = CalendarApproach.getCalendarService();
+    public void checkEvent(String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
         LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
         // 에약 제한 사항들
         calendarValidService.checkEventOverlaps(startDateTime, endDateTime, startDate);
         calendarValidService.checkDuration(startDateTime, endDateTime);
-
-        EventDateTime start = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
-        EventDateTime end = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
-
-        String summary = String.format("세미나실2/%s", studentId);
-        Event event = new Event().setSummary(summary);
-        event.setStart(start);
-        event.setEnd(end);
-        event = service.events().insert(CALENDAR_ID, event).execute();
-        return event.getId();
     }
 
-    // 예약 추가하기 (주최자 제외 팀원들)
-    public String addEvent(String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(List studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception{
         Calendar service = CalendarApproach.getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
-        String summary = String.format("세미나실2/%s", studentId);
+        String summary = String.format("세미나실2/%s", studentIds);
         Event event = new Event().setSummary(summary);
 
         EventDateTime start = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
