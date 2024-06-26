@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface ReservAssignRepository extends JpaRepository<EventAssign, Integer> {
-    EventAssign findByEventId(String eventId);
+//    EventAssign findByEventId(String eventId);
     List<EventAssign> findByReservId(int reservation_id);
 
     List<EventAssign> findByUserId(@Param("userId") int userId);

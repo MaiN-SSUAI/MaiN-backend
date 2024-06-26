@@ -32,7 +32,8 @@ public class EventDto {
                 userId,
                 this.purpose,
                 this.startDateTimeStr,
-                this.endDateTimeStr
+                this.endDateTimeStr,
+                this.eventId
         );
     }
 }

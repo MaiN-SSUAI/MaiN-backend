@@ -31,13 +31,17 @@ public class Reserv {
     @Column(name = "end_time")
     private String endTime;
 
+    @Column(name = "event_id")
+    private String eventId;
 
-    public Reserv(int id, int userId, String purpose, String startTime, String endTime) {
+
+    public Reserv(int id, int userId, String purpose, String startTime, String endTime, String eventId) {
         this.id = id;
         this.userId = userId;
         this.purpose = purpose;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.eventId = eventId;
     }
 
     public void patch(Reserv event) {
