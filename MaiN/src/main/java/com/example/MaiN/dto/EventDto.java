@@ -40,4 +40,8 @@ public class EventDto {
     public void setEventId(String eventId) {
         this.eventId = eventId;
     }
+
+    public String getEventId() {
+        return eventId;
+    }
 }

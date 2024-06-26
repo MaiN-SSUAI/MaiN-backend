@@ -53,4 +53,8 @@ public class Reserv {
             this.endTime = event.endTime;
 
     }
+
+    public String getEventId() {
+        return eventId;
+    }
 }

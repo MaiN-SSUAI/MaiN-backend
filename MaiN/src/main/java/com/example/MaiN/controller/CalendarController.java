@@ -75,6 +75,7 @@ public class CalendarController {
         calendarService.checkUser(user, date);
         return ResponseEntity.ok("Valid User");
     }
+
     @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
     public String addEvent(@RequestBody EventDto eventDto) throws Exception {
@@ -128,15 +129,13 @@ public class CalendarController {
         List<EventAssign> eventAssignList = reservAssignRepository.findByReservId(id);
 
         if (!eventAssignList.isEmpty()) {
-            for (EventAssign eventAssign : eventAssignList) {
-                String eventId = eventAssign.getEventId();
-                reservAssignRepository.delete(eventAssign);
-                calendarService.deleteCalendarEvents(eventId);
-            }
+            for (EventAssign eventAssign : eventAssignList) reservAssignRepository.delete(eventAssign);
             Optional<Reserv> target = reservRepository.findById(id);
             if (target.isPresent()) {
                 Reserv event = target.get();
+                String eventId = event.getEventId();
                 reservRepository.delete(event);
+                calendarService.deleteCalendarEvents(eventId);
             }
             return "Events deleted successfully";
         } else {
