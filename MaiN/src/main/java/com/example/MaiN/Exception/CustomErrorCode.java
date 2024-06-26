@@ -24,6 +24,7 @@ public enum CustomErrorCode implements EnumModel {
     EVENT_OVERLAPS(400, "V003", "Event Overlaps"),
     OUT_OF_DURATION(400, "V004", "Out of Duration reservation"),
     UNABLE_TO_DELETE(400, "V005", "Unable to delete reservation"),
+    UNABLE_TO_ADD(400, "V006", "Unable to add reservation"),
 
     //Reservation
     RESERVATION_ONE_PERSON(400, "R001", "Impossible to make a reservation alone");
