@@ -1,12 +1,12 @@
 package com.example.MaiN.CalendarService;
 
 
+import com.example.MaiN.entity.EventAssign;
 import com.example.MaiN.entity.User;
 import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class CalendarService {
-    private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com"; //학부
+    private static final String CALENDAR_ID = "d4075e67660e0f6bd313a60f05cbb102bc1b2a632c17c1a7e11acc1cf10fd8fe@group.calendar.google.com"; //학부
     @Autowired
     private ReservRepository reservRepository;
     @Autowired
@@ -29,7 +29,7 @@ public class CalendarService {
     @Autowired
     private CalendarValidService calendarValidService;
     // 예약 추가하기 (주최자)
-    public String addOrganizeEvent(String studentId, int userId, String purpose, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addOrganizeEvent(String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = CalendarApproach.getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
@@ -50,12 +50,10 @@ public class CalendarService {
     }
 
     // 예약 추가하기 (주최자 제외 팀원들)
-    public String addEvent(String studentId, int userId, String purpose, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addEvent(String studentId, String startDateTimeStr, String endDateTimeStr) throws Exception {
         Calendar service = CalendarApproach.getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
-        LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
-        LocalDate endDate = LocalDate.parse(endDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
 
         String summary = String.format("세미나실2/%s", studentId);
         Event event = new Event().setSummary(summary);
@@ -69,7 +67,7 @@ public class CalendarService {
         return event.getId();
     }
 
-    public void addUniformedUser(String studentId) {
+    public void addUninformedUser(String studentId) {
         User user = new User();
         user.setStudentNo(studentId);
         user.setStudentName("");

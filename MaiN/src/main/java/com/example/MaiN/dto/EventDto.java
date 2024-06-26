@@ -1,6 +1,6 @@
 package com.example.MaiN.dto;
 
-import com.example.MaiN.entity.Event;
+import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.entity.EventAssign;
 import com.google.api.client.util.DateTime;
 import lombok.AllArgsConstructor;
@@ -26,8 +26,8 @@ public class EventDto {
     private int reservationId;
 
     // DTO객체를 Entity객체로 변환하는 메서드
-    public Event toEntity(int userId){
-        return new Event(
+    public Reserv toEntity(int userId){
+        return new Reserv(
                 this.id,
                 userId,
                 this.purpose,

@@ -1,7 +1,9 @@
 package com.example.MaiN.CalendarService;
 
 import com.example.MaiN.entity.EventAssign;
+import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.repository.ReservAssignRepository;
+import com.example.MaiN.repository.ReservRepository;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
@@ -20,10 +22,12 @@ import java.util.concurrent.Future;
 
 @Service
 public class CalendarGetService {
-    private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com"; //학부
+    private static final String CALENDAR_ID = "d4075e67660e0f6bd313a60f05cbb102bc1b2a632c17c1a7e11acc1cf10fd8fe@group.calendar.google.com"; //학부
 
     @Autowired
     private ReservAssignRepository reservAssignRepository;
+    @Autowired
+    private ReservRepository reservRepository;
 
     public String calPixel(DateTime time) {
         Instant instant = Instant.ofEpochMilli(time.getValue());
@@ -35,11 +39,13 @@ public class CalendarGetService {
         return Integer.toString(result);
     }
 
-    public Map<String, Object> toMap(Event event, LocalDate date, int reservId) {
+    public Map<String, Object> toMap(Event event, LocalDate date, int reservId, String purpose) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("reservId", reservId);
         List<String> studentNos = new ArrayList<>();
         map.put("studentNo", studentNos);
+
+        map.put("purpose", purpose); // 예약 목적
 
         DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
         DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
@@ -108,8 +114,11 @@ public class CalendarGetService {
                 EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
                 int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
 
+                Optional<Reserv> mainEvent = reservRepository.findById(reservId);
+                String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
+
                 // 이벤트를 맵으로 변환
-                Map<String, Object> eventMap = toMap(event, date, reservId);
+                Map<String, Object> eventMap = toMap(event, date, reservId, purpose);
                 String studentNo = parts[1];
 
                 // 동일한 reservId를 가진 기존 이벤트가 이미 맵에 있는 경우
@@ -181,7 +190,11 @@ public class CalendarGetService {
                     if (parts.length > 0 && parts[0].contains("2")) {
                         EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
                         int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
-                        Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId);
+
+                        Optional<Reserv> mainEvent = reservRepository.findById(reservId);
+                        String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
+
+                        Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId, purpose);
                         String studentNo = parts[1];
 
                         if (reservId == 0) {
