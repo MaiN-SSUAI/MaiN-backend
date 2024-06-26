@@ -110,36 +110,19 @@ public class CalendarGetService {
             String summary = event.getSummary();
             // 특정 문자열이 포함된 장소에 예약된 이벤트만 필터링
             String[] parts = summary.split("/");
-            if (parts.length > 0 && parts[0].contains("2")) {
-                EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
-                int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
+            if (parts.length > 0 && parts[0].contains("2")) { //세미나실 2  event 라면
+                Reserv dbEvent = reservRepository.findByEventId(event.getId()); //event id 로 reserv 테이블에 저장된 예약 가져오기
+                int reservId = (dbEvent != null) ? dbEvent.getId() : 0;  //db 에 없으면 reservId = 0
 
                 Optional<Reserv> mainEvent = reservRepository.findById(reservId);
-                String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
+                String purpose = mainEvent.map(Reserv::getPurpose).orElse(""); //purpose 추가
 
                 // 이벤트를 맵으로 변환
                 Map<String, Object> eventMap = toMap(event, date, reservId, purpose);
-                String studentNo = parts[1];
-
-                // 동일한 reservId를 가진 기존 이벤트가 이미 맵에 있는 경우
-                if (reservId == 0) {
-                    List<String> studentNos = new ArrayList<>();
-                    studentNos.add(studentNo);
-                    eventMap.put("studentNo", studentNos);
-                    useAppEventsList.add(eventMap);
-                } else {
-                    // 동일한 reservId를 가진 기존 이벤트가 이미 맵에 있는 경우
-                    if (useGoogleEventsMap.containsKey(reservId)) {
-                        Map<String, Object> existingEventMap = useGoogleEventsMap.get(reservId);
-                        List<String> studentNos = (List<String>) existingEventMap.get("studentNo");
-                        studentNos.add(studentNo);
-                    } else {
-                        List<String> studentNos = new ArrayList<>();
-                        studentNos.add(studentNo);
-                        eventMap.put("studentNo", studentNos);
-                        useGoogleEventsMap.put(reservId, eventMap);
-                    }
-                }
+                String studentNo = parts[1].replace("[", "").replace("]", "").trim();;
+                List<String> studentNoList = Arrays.asList(studentNo.split(", "));
+                eventMap.put("studentNo", studentNoList);
+                useGoogleEventsMap.put(reservId,eventMap);
             }
         }
 
@@ -188,32 +171,17 @@ public class CalendarGetService {
                     String summary = event.getSummary();
                     String[] parts = summary.split("/");
                     if (parts.length > 0 && parts[0].contains("2")) {
-                        EventAssign dbEvent = reservAssignRepository.findByEventId(event.getId());
-                        int reservId = (dbEvent != null) ? dbEvent.getReservId() : 0;
+                        Reserv dbEvent = reservRepository.findByEventId(event.getId());
+                        int reservId = (dbEvent != null) ? dbEvent.getId() : 0;
 
                         Optional<Reserv> mainEvent = reservRepository.findById(reservId);
                         String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
 
                         Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId, purpose);
-                        String studentNo = parts[1];
-
-                        if (reservId == 0) {
-                            List<String> studentNos = new ArrayList<>();
-                            studentNos.add(studentNo);
-                            eventMap.put("studentNo", studentNos);
-                            useAppEventsList.add(eventMap);
-                        } else {
-                            if (useGoogleEventsMap.containsKey(reservId)) {
-                                Map<String, Object> existingEventMap = useGoogleEventsMap.get(reservId);
-                                List<String> studentNos = (List<String>) existingEventMap.get("studentNo");
-                                studentNos.add(studentNo);
-                            } else {
-                                List<String> studentNos = new ArrayList<>();
-                                studentNos.add(studentNo);
-                                eventMap.put("studentNo", studentNos);
-                                useGoogleEventsMap.put(reservId, eventMap);
-                            }
-                        }
+                        String studentNo = parts[1].replace("[", "").replace("]", "").trim();;
+                        List<String> studentNoList = Arrays.asList(studentNo.split(", "));
+                        eventMap.put("studentNo", studentNoList);
+                        useGoogleEventsMap.put(reservId,eventMap);
                     }
                 }
 
