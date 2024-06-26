@@ -36,4 +36,8 @@ public class EventDto {
                 this.eventId
         );
     }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
 }

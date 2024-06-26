@@ -50,6 +50,7 @@ public class CalendarController {
     public CalendarController(ReservRepository seminarReservRepository) {
         reservRepository = seminarReservRepository;
     }
+
     //특정 날짜 일정 보기
     @GetMapping("/events")
     @Operation(summary = "모든 예약 불러오기")
@@ -90,12 +91,14 @@ public class CalendarController {
                 User user = userOptional.orElse(null);
                 int userId = user.getId();
 
-                String eventId = calendarService.addOrganizeEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                calendarService.checkEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                String eventId = calendarService.addEvent(studentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                eventDto.setEventId(eventId);
                 Reserv event = eventDto.toEntity(userId);
-                Reserv saved = reservRepository.save(event); //대표 이벤트 저장
+                Reserv saved = reservRepository.save(event);
                 reservId = saved.getId();
-                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId);
-                EventAssign eventOther = eventAssignDto.toEntity(); //대표 이벤트를 나머지 이벤트에 한번 더 저장 (삭제용)
+                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId); //나머지 이벤트 저장
+                EventAssign eventOther = eventAssignDto.toEntity();
                 reservAssignRepository.save(eventOther);
             }
             else {
@@ -109,10 +112,7 @@ public class CalendarController {
                     calendarService.addUninformedUser(studentId);
                 } //정보 없는 학생일 경우 userId = 1
                 else{ userId = user.getId(); } //정보 있는 학생일 경우 정보 가져옴
-
-                String eventId = calendarService.addEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-
-                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId, eventId); //나머지 이벤트 저장
+                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId); //나머지 이벤트 저장
                 EventAssign eventOther = eventAssignDto.toEntity();
                 reservAssignRepository.save(eventOther);
             }
