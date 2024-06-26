@@ -2,6 +2,7 @@ package com.example.MaiN.controller;
 
 import com.example.MaiN.CalendarService.CalendarGetService;
 import com.example.MaiN.CalendarService.CalendarValidService;
+import com.example.MaiN.CalendarService.ReservationLockService;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.dto.EventAssignDto;
@@ -21,6 +22,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -76,51 +78,58 @@ public class CalendarController {
         return ResponseEntity.ok("Valid User");
     }
 
+    // 예약 등록
     @PostMapping("/add/event")
     @Operation(summary = "예약 등록")
+    @Transactional
     public String addEvent(@RequestBody EventDto eventDto) throws Exception {
         if (eventDto.getStudentIds().size() < 2){
             throw new CustomException("최소 2인 이상 예약해야 합니다.", CustomErrorCode.RESERVATION_ONE_PERSON);
         }
         calendarValidService.checkAddTime(eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+
         List<String> studentIds = eventDto.getStudentIds();
-        int reservId = 0;
-        for (int i = 0; i<studentIds.size(); i++) {
-            if (i == 0) {
-                String studentId = studentIds.get(i);
-                Optional<User> userOptional = userRepository.findByStudentNo(studentId);
-                User user = userOptional.orElse(null);
-                int userId = user.getId();
+  
+        return ReservationLockService.executeWithLock(eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(), () -> {
+          int reservId = 0;
+          for (int i = 0; i<studentIds.size(); i++) {
+              if (i == 0) {
+                  String studentId = studentIds.get(i);
+                  Optional<User> userOptional = userRepository.findByStudentNo(studentId);
+                  User user = userOptional.orElse(null);
+                  int userId = user.getId();
 
-                calendarService.checkEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-                String eventId = calendarService.addEvent(studentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
-                eventDto.setEventId(eventId);
-                Reserv event = eventDto.toEntity(userId);
-                Reserv saved = reservRepository.save(event);
-                reservId = saved.getId();
-                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId); //나머지 이벤트 저장
-                EventAssign eventOther = eventAssignDto.toEntity();
-                reservAssignRepository.save(eventOther);
-            }
-            else {
-                int userId;
-                String studentId = studentIds.get(i);
-                Optional<User> userOptional = userRepository.findByStudentNo(studentId);
-                User user = userOptional.orElse(null);
+                  calendarService.checkEvent(studentId, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                  String eventId = calendarService.addEvent(studentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                  eventDto.setEventId(eventId);
+                  Reserv event = eventDto.toEntity(userId);
+                  Reserv saved = reservRepository.save(event);
+                  reservId = saved.getId();
+                  EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId); //나머지 이벤트 저장
+                  EventAssign eventOther = eventAssignDto.toEntity();
+                  reservAssignRepository.save(eventOther);
+              }
+              else {
+                  int userId;
+                  String studentId = studentIds.get(i);
+                  Optional<User> userOptional = userRepository.findByStudentNo(studentId);
+                  User user = userOptional.orElse(null);
 
-                if(user == null){
-                    userId = 1;
-                    calendarService.addUninformedUser(studentId);
-                } //정보 없는 학생일 경우 userId = 1
-                else{ userId = user.getId(); } //정보 있는 학생일 경우 정보 가져옴
-                EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId); //나머지 이벤트 저장
-                EventAssign eventOther = eventAssignDto.toEntity();
-                reservAssignRepository.save(eventOther);
+                  if(user == null){
+                      userId = 1;
+                      calendarService.addUninformedUser(studentId);
+                  } //정보 없는 학생일 경우 userId = 1
+                  else{ userId = user.getId(); } //정보 있는 학생일 경우 정보 가져옴
+                  EventAssignDto eventAssignDto = new EventAssignDto(reservId, userId); //나머지 이벤트 저장
+                  EventAssign eventOther = eventAssignDto.toEntity();
+                  reservAssignRepository.save(eventOther);
+                }
             }
-        }
-        return "success";
+            return "success";
+        });
     }
-    //삭제
+
+    // 예약 삭제
     @DeleteMapping("/delete/{Id}")
     @Operation(summary = "예약 삭제")
     public String delete(@PathVariable("Id") int id) throws Exception {
