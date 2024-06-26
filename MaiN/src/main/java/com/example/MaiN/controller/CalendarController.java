@@ -80,6 +80,7 @@ public class CalendarController {
         if (eventDto.getStudentIds().size() < 2){
             throw new CustomException("최소 2인 이상 예약해야 합니다.", CustomErrorCode.RESERVATION_ONE_PERSON);
         }
+        calendarValidService.checkAddTime(eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
         List<String> studentIds = eventDto.getStudentIds();
         int reservId = 0;
         for (int i = 0; i<studentIds.size(); i++) {

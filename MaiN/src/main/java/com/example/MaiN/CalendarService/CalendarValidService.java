@@ -64,7 +64,7 @@ public class CalendarValidService {
                 })
                 .count();
         System.out.println("Total reservations for student ID " + userId + " is " + countThisWeek);
-        String text = studentId + "학생이 주에 2번 이상의 예약을 시도함";
+        String text = studentId + "님이 이번주 예약 횟수를 초과하였습니다.";
         if (countThisWeek >= 2) {
             throw new CustomException(text, CustomErrorCode.MORE_THAN_2APPOINTS);
         }
@@ -113,7 +113,23 @@ public class CalendarValidService {
         LocalDateTime eventDateTimeAfter = eventDateTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
 
         if (currentDateTime.isAfter(eventDateTimeAfter)) { //현재 시각이 (저장된 이벤트 시작 시간 + 30분)의 이후라면 예약 불가
-            throw new CustomException("예약 삭제가 불가합니다.", CustomErrorCode.UNABLE_TO_DELETE);
+            throw new CustomException("이미 지난 예약은 삭제할 수 없습니다.", CustomErrorCode.UNABLE_TO_DELETE);
+        }
+    }
+
+    public void checkAddTime(String startTime, String endTime) throws CustomException {
+        ZonedDateTime startZonedDateTime = ZonedDateTime.parse(startTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        ZonedDateTime endZonedDateTime = ZonedDateTime.parse(endTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        LocalDateTime startDateTime = startZonedDateTime.toLocalDateTime();
+        LocalDateTime endDateTime = endZonedDateTime.toLocalDateTime();
+
+        Duration duration = Duration.between(startDateTime, endDateTime);
+        //System.out.println("차이???! : " + duration);
+        long minutes = duration.toMinutes();
+        //System.out.println("분 차이????! : " + minutes);
+
+        if (minutes < 30) {
+            throw new CustomException("최소 30분 이상 예약해주세요.", CustomErrorCode.UNABLE_TO_ADD);
         }
     }
 }
