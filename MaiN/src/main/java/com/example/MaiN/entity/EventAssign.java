@@ -21,12 +21,8 @@ public class EventAssign {
     @Column(name = "user_id")
     private int userId;
 
-    @Column(name = "event_id")
-    private String eventId;
-
-    public EventAssign(int reservId, int userId, String eventId) {
+    public EventAssign(int reservId, int userId) {
         this.reservId = reservId;
         this.userId = userId;
-        this.eventId = eventId;
     }
 }
