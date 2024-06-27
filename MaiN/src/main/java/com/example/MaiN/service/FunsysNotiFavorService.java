@@ -82,4 +82,15 @@ public class FunsysNotiFavorService {
 
         return query.getResultList();
     }
+
+    public List<FunsysNotiDto> getFunsysNotiWithFavoritesDev(int studentNo) {
+        String jpql = "SELECT new com.example.MaiN.dto.FunsysNotiDto(an.id, an.title, an.link, an.startDate, an.endDate, CASE WHEN af.studentNo.studentNo IS NOT NULL THEN true ELSE false END) " +
+                "FROM FunsysNoti an LEFT JOIN an.favoritesSet af ON af.studentNo.studentNo = :studentNo " +
+                "ORDER BY an.startDate DESC";
+
+        TypedQuery<FunsysNotiDto> query = entityManager.createQuery(jpql, FunsysNotiDto.class);
+        query.setParameter("studentNo", studentNo);
+
+        return query.getResultList();
+    }
 }

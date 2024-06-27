@@ -39,4 +39,11 @@ public class AiNotiFavorController {
         List<AiNotiDto> aiNotilist = aiNotiFavorService.getAiNotiWithFavorites(studentNo, pageNo);
         return ResponseEntity.ok(aiNotilist);
     }
+
+    @GetMapping("/all/dev/{studentNo}")
+    @Operation(summary = "모든 북마크 보기")
+    public ResponseEntity<List<AiNotiDto>>  getAiNotiWithFavoritesDev(@PathVariable int studentNo) {
+        List<AiNotiDto> aiNotilist = aiNotiFavorService.getAiNotiWithFavoritesDev(studentNo);
+        return ResponseEntity.ok(aiNotilist);
+    }
 }

@@ -40,4 +40,11 @@ public class SsuCatchNotiFavorController {
         List<SsuCatchNotiDto> ssuCatchNotilist = ssuCatchNotiFavorService.getSsuCatchWithFavorites(studentNo, pageNo);
         return ResponseEntity.ok(ssuCatchNotilist);
     }
+
+    @GetMapping("/all/dev/{studentNo}")
+    @Operation(summary = "모든 북마크 보기")
+    public ResponseEntity<List<SsuCatchNotiDto>>  getSsuCatchWithFavoritesDev(@PathVariable int studentNo) {
+        List<SsuCatchNotiDto> ssuCatchNotilist = ssuCatchNotiFavorService.getSsuCatchWithFavoritesDev(studentNo);
+        return ResponseEntity.ok(ssuCatchNotilist);
+    }
 }

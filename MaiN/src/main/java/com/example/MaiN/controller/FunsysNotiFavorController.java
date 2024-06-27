@@ -39,4 +39,11 @@ public class FunsysNotiFavorController {
         List<FunsysNotiDto> funsysNotis = funsysNotiFavorService.getFunsysNotiWithFavorites(studentNo, pageNo);
         return ResponseEntity.ok(funsysNotis);
     }
+
+    @GetMapping("/all/dev/{studentNo}")
+    @Operation(summary = "모든 북마크 보기")
+    public ResponseEntity<List<FunsysNotiDto>> getFunsysNotiWithFavoritesDev(@PathVariable int studentNo) {
+        List<FunsysNotiDto> funsysNotis = funsysNotiFavorService.getFunsysNotiWithFavoritesDev(studentNo);
+        return ResponseEntity.ok(funsysNotis);
+    }
 }
