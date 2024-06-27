@@ -110,7 +110,13 @@ public class CalendarValidService {
         ZonedDateTime zonedDateTime = ZonedDateTime.parse(eventTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         LocalDateTime eventDateTime = zonedDateTime.toLocalDateTime(); //저장된 이벤트 시간 localdatetime
 
+        System.out.println("eventDateTime : " + eventDateTime);
+        System.out.println("currentDateTime : " + currentDateTime);
+
+
         LocalDateTime eventDateTimeAfter = eventDateTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
+
+        System.out.println("eventDateTimeAfter : " + eventDateTimeAfter);
 
         if (currentDateTime.isAfter(eventDateTimeAfter)) { //현재 시각이 (저장된 이벤트 시작 시간 + 30분)의 이후라면 예약 불가
             throw new CustomException("이미 지난 예약은 삭제할 수 없습니다.", CustomErrorCode.UNABLE_TO_DELETE);
