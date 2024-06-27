@@ -79,4 +79,16 @@ public class SsuCatchNotiFavorService {
 
         return query.getResultList();
     }
+
+    public List<SsuCatchNotiDto> getSsuCatchWithFavoritesDev(int studentNo) {
+        String jpql = "SELECT new com.example.MaiN.dto.SsuCatchNotiDto(an.id, an.title, an.link, an.progress, an.category, an.date, CASE WHEN af IS NOT NULL THEN true ELSE false END) " +
+                "FROM SsuCatchNoti an LEFT JOIN an.favoritesSet af " +
+                "WITH af.studentNo.studentNo = :studentNo " +
+                "ORDER BY an.date DESC";
+
+        TypedQuery<SsuCatchNotiDto> query = entityManager.createQuery(jpql, SsuCatchNotiDto.class);
+        query.setParameter("studentNo", studentNo);
+
+        return query.getResultList();
+    }
 }
