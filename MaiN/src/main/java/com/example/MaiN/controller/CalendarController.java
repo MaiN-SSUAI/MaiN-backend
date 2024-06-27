@@ -47,7 +47,7 @@ public class CalendarController {
     @Autowired
     private UserRepository userRepository;
 
-    private static final String CALENDAR_ID = "c_9pdatu4vq4b02h0ua44unu33es@group.calendar.google.com";
+    private static final String CALENDAR_ID = "d4075e67660e0f6bd313a60f05cbb102bc1b2a632c17c1a7e11acc1cf10fd8fe@group.calendar.google.com";
 
     public CalendarController(ReservRepository seminarReservRepository) {
         reservRepository = seminarReservRepository;
