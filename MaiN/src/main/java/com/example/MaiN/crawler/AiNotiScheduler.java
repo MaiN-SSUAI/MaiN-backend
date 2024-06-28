@@ -48,7 +48,7 @@ public class AiNotiScheduler {
         String currentDateStr = sdf.format(new Date());
 
         // 시간을 현재 날짜에 맞게 설정
-        String scheduledTimeStr = currentDateStr.substring(0, 11) + "02:43:00"; // 원하는 시간으로 변경
+        String scheduledTimeStr = currentDateStr.substring(0, 11) + "00:00:00"; // 원하는 시간으로 변경
 
         return sdf.parse(scheduledTimeStr);
     }
