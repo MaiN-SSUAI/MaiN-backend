@@ -2,6 +2,7 @@ package com.example.MaiN.crawler;
 
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -11,6 +12,14 @@ import java.util.Date;
 
 @Component
 public class SsucatchNotiScheduler {
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
 
     @PostConstruct
     public void init() {
@@ -31,6 +40,11 @@ public class SsucatchNotiScheduler {
             JobDetail job = JobBuilder.newJob(com.example.MaiN.crawler.SsucatchNotiCrawler.class)
                     .withIdentity("ssucatchNotiCrawlingJob", "group1")
                     .build();
+
+            JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("dbUrl", dbUrl);
+            jobDataMap.put("dbUsername", dbUsername);
+            jobDataMap.put("dbPassword", dbPassword);
 
             // 스케줄러에 Job과 Trigger 등록
             scheduler.scheduleJob(job, trigger);

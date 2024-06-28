@@ -5,6 +5,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.quartz.Job;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
@@ -18,6 +19,11 @@ public class FunsysNotiCrawler implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        JobDataMap dataMap = context.getJobDetail().getJobDataMap();
+        String dbUrl = dataMap.getString("dbUrl");
+        String dbUsername = dataMap.getString("dbUsername");
+        String dbPassword = dataMap.getString("dbPassword");
+
         String baseUrl = "https://fun.ssu.ac.kr/ko/program/all/list/all/";
         int page = 1;
 

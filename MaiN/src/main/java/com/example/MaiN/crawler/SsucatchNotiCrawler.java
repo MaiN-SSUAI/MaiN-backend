@@ -5,6 +5,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.quartz.Job;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
@@ -17,6 +18,11 @@ public class SsucatchNotiCrawler implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        JobDataMap dataMap = context.getJobDetail().getJobDataMap();
+        String dbUrl = dataMap.getString("dbUrl");
+        String dbUsername = dataMap.getString("dbUsername");
+        String dbPassword = dataMap.getString("dbPassword");
+
         String baseUrl = "https://scatch.ssu.ac.kr/%EA%B3%B5%EC%A7%80%EC%82%AC%ED%95%AD/page/";
         int page = 1;
 

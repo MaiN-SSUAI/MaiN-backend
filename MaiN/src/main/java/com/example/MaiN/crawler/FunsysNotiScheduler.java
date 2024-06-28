@@ -2,6 +2,7 @@ package com.example.MaiN.crawler;
 
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -11,6 +12,15 @@ import java.util.Date;
 
 @Component
 public class FunsysNotiScheduler {
+
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
 
     @PostConstruct
     public void init() {
@@ -26,6 +36,11 @@ public class FunsysNotiScheduler {
                             .withIntervalInHours(24)
                             .repeatForever()) // 매일 24시간 주기로 반복
                     .build();
+
+            JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("dbUrl", dbUrl);
+            jobDataMap.put("dbUsername", dbUsername);
+            jobDataMap.put("dbPassword", dbPassword);
 
             // 크롤링 작업을 수행할 Job을 정의
             JobDetail job = JobBuilder.newJob(com.example.MaiN.crawler.FunsysNotiCrawler.class)
