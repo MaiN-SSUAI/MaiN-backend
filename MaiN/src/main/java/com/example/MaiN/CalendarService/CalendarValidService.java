@@ -114,7 +114,7 @@ public class CalendarValidService {
         System.out.println("currentDateTime : " + currentDateTime);
 
 
-        LocalDateTime eventDateTimeAfter = eventDateTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
+        LocalDateTime eventDateTimeAfter = eventDateTime.minusHours(9).plusMinutes(30); //저장된 이벤트 시간에 30분 plus
 
         System.out.println("eventDateTimeAfter : " + eventDateTimeAfter);
 

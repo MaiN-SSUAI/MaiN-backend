@@ -2,6 +2,7 @@ package com.example.MaiN.crawler;
 
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -11,6 +12,14 @@ import java.util.Date;
 
 @Component
 public class SsucatchNotiScheduler {
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
 
     @PostConstruct
     public void init() {
@@ -32,6 +41,11 @@ public class SsucatchNotiScheduler {
                     .withIdentity("ssucatchNotiCrawlingJob", "group1")
                     .build();
 
+            JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("dbUrl", dbUrl);
+            jobDataMap.put("dbUsername", dbUsername);
+            jobDataMap.put("dbPassword", dbPassword);
+
             // 스케줄러에 Job과 Trigger 등록
             scheduler.scheduleJob(job, trigger);
 
@@ -48,7 +62,7 @@ public class SsucatchNotiScheduler {
         String currentDateStr = sdf.format(new Date());
 
         // 시간을 현재 날짜에 맞게 설정
-        String scheduledTimeStr = currentDateStr.substring(0, 11) + "11:16:00"; // 원하는 시간으로 변경
+        String scheduledTimeStr = currentDateStr.substring(0, 11) + "00:00:00"; // 원하는 시간으로 변경
 
         return sdf.parse(scheduledTimeStr);
     }

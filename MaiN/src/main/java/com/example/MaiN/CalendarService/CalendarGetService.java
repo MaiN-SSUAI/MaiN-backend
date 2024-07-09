@@ -79,10 +79,11 @@ public class CalendarGetService {
         }
         //입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
         else if (date.isBefore(eventEndDate)) {
-            map.put("end_pixel","864");
+            map.put("end_pixel", "864");
         }
         return map;
     }
+
     //GET
     public ResponseEntity<?> getCalendarEvents(LocalDate date) throws Exception {
         //Calendar 객체 생성
@@ -103,8 +104,8 @@ public class CalendarGetService {
         // 가져온 이벤트들을 리스트에 저장
         List<Event> eventsList = events.getItems();
 
-        Map<Integer, Map<String, Object>> useGoogleEventsMap = new LinkedHashMap<>(); // useGoogleEventsMap 은 reservId가 0으로 객체 하나로 합칠 필요 X
-        List<Map<String, Object>> useAppEventsList = new ArrayList<>(); // useAppEventsList는 여러명 예약으로 객체를 하나로 합칠 필요 O
+        List<Map<String, Object>> allEventList = new ArrayList<>();
+
 
         for (Event event : eventsList) {
             String summary = event.getSummary();
@@ -119,18 +120,14 @@ public class CalendarGetService {
 
                 // 이벤트를 맵으로 변환
                 Map<String, Object> eventMap = toMap(event, date, reservId, purpose);
-                String studentNo = parts[1].replace("[", "").replace("]", "").trim();;
+                String studentNo = parts[1].replace("[", "").replace("]", "").trim();
                 List<String> studentNoList = Arrays.asList(studentNo.split(", "));
                 eventMap.put("studentNo", studentNoList);
-                useGoogleEventsMap.put(reservId,eventMap);
+
+                allEventList.add(eventMap);
             }
         }
-
-        // 리스트로 변환
-        List<Map<String, Object>> allEventsList = new ArrayList<>(useGoogleEventsMap.values());
-        allEventsList.addAll(useAppEventsList);
-
-        return ResponseEntity.ok(allEventsList);
+        return ResponseEntity.ok(allEventList);
     }
 
     public ResponseEntity<?> getWeekCalendarEvents(LocalDate date) throws Exception {
@@ -139,13 +136,9 @@ public class CalendarGetService {
         LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
         Map<String, List<Map<String, Object>>> weeklyEvents = new LinkedHashMap<>();
-        weeklyEvents.put("Mon", new ArrayList<>());
-        weeklyEvents.put("Tue", new ArrayList<>());
-        weeklyEvents.put("Wed", new ArrayList<>());
-        weeklyEvents.put("Thu", new ArrayList<>());
-        weeklyEvents.put("Fri", new ArrayList<>());
-        weeklyEvents.put("Sat", new ArrayList<>());
-        weeklyEvents.put("Sun", new ArrayList<>());
+        for (DayOfWeek day : DayOfWeek.values()) {
+            weeklyEvents.put(day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3), new ArrayList<>());
+        }
 
         ExecutorService executor = Executors.newFixedThreadPool(7);
         List<Future<Map<String, List<Map<String, Object>>>>> futures = new ArrayList<>();
@@ -164,8 +157,7 @@ public class CalendarGetService {
                         .execute();
 
                 List<Event> eventsList = events.getItems();
-                Map<Integer, Map<String, Object>> useGoogleEventsMap = new LinkedHashMap<>();
-                List<Map<String, Object>> useAppEventsList = new ArrayList<>();
+                List<Map<String, Object>> dayEventsList = new ArrayList<>();
 
                 for (Event event : eventsList) {
                     String summary = event.getSummary();
@@ -178,17 +170,17 @@ public class CalendarGetService {
                         String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
 
                         Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId, purpose);
-                        String studentNo = parts[1].replace("[", "").replace("]", "").trim();;
+                        String studentNo = parts[1].replace("[", "").replace("]", "").trim();
                         List<String> studentNoList = Arrays.asList(studentNo.split(", "));
                         eventMap.put("studentNo", studentNoList);
-                        useGoogleEventsMap.put(reservId,eventMap);
+
+                        dayEventsList.add(eventMap);
                     }
                 }
 
                 String dayOfWeek = finalCurrentDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3);
                 Map<String, List<Map<String, Object>>> dayEvents = new LinkedHashMap<>();
-                dayEvents.put(dayOfWeek, new ArrayList<>(useGoogleEventsMap.values()));
-                dayEvents.get(dayOfWeek).addAll(useAppEventsList);
+                dayEvents.put(dayOfWeek, dayEventsList);
 
                 return dayEvents;
             });
