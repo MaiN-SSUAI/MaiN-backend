@@ -123,5 +123,52 @@ public class CalendarService {
         //예약 수정 로직
     }
 
+    @Operation(summary = "하루 캘린더 가져오기")
+    public static List<Map<String, Object>> getCalendarEvents(LocalDate date) throws Exception {
+
+        Calendar calendar = getCalendarService();
+
+        // 입력받은 날짜를 이용해 그 날의 시작 시간과 끝 시간을 DateTime 형식으로 변환
+        DateTime startOfDay = new DateTime(date.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        DateTime endOfDay = new DateTime(date.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+
+        // 캘린더에서 날짜 범위에 해당하는 이벤트들 get
+        Events events = calendar.events().list(CALENDAR_ID)
+                .setTimeMin(startOfDay)
+                .setTimeMax(endOfDay)
+                .setOrderBy("startTime")
+                .setSingleEvents(true)
+                .execute();
+
+        // 구글캘린더에서 가져온 이벤트들
+        List<Event> eventsList = events.getItems();
+
+        // 가져온 이벤트들을 처리해서 리스트에 저장
+        List<Map<String, Object>> dayEventList = new ArrayList<>();
+
+        for (Event event : eventsList) {
+            String[] parts = event.getSummary().split("/");
+
+            //세미나실2만 필터링
+            if (parts.length > 0 && parts[0].contains("2")) {
+                //EventId를 통해 데이터베이스에 존재하는 이벤트를 필터링
+                Reserv dbEvent = reservRepository.findByEventId(event.getId());
+
+                //데이터베이스에 존재하는 이벤트일 경우, getId() 아닐 경우, 0으로 세팅
+                int reservId = (dbEvent != null) ? dbEvent.getId() : 0;
+                //데이터베이스에 존재하는 이벤트일 경우, getPurpose() 아닐 경우, ""으로 세팅
+                String purpose = (dbEvent != null) ? dbEvent.getPurpose() : "";
+
+                //학번 하나씩 리스트로 저장
+                List<String> studentNoList = Arrays.asList(parts[1].replace("[", "").replace("]", "").trim().split(", "));
+
+                // 이벤트를 맵으로 변환
+                Map<String, Object> eventMap = toMap(event, date, reservId, purpose, studentNoList);
+
+                dayEventList.add(eventMap);
+            }
+        }
+        return dayEventList;
+    }
 
 }
