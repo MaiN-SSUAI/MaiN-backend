@@ -1,20 +1,44 @@
 package com.example.MaiN.service;
 
-import com.example.MaiN.CalendarService.CalendarApproach;
+import com.example.MaiN.security.GoogleCredentialProvider;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class CalendarService {
-    private static final String CALENDAR_ID = "d4075e67660e0f6bd313a60f05cbb102bc1b2a632c17c1a7e11acc1cf10fd8fe@group.calendar.google.com"; //학부
+    private static final String APPLICATION_NAME = "Google Calendar API";
+    private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
-    public String addReservation(List studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception{
-        Calendar calendar = CalendarApproach.getCalendarService();
+    @Value("${calendar.id}")
+    private String CALENDAR_ID;
+
+    private final GoogleCredentialProvider googleCredentialProvider;
+    public CalendarService(GoogleCredentialProvider googleCredentialProvider) {
+        this.googleCredentialProvider = googleCredentialProvider;
+    }
+
+    @Operation(summary = "Calendar 서비스 객체 생성")
+    private static Calendar getCalendarService() throws Exception {
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, GoogleCredentialProvider.getCredential())
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+    }
+
+    @Operation(summary = "예약 등록")
+    public String addReservation(List studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception {
+        Calendar calendar = getCalendarService();
         DateTime startDateTime = new DateTime(startDateTimeStr);
         DateTime endDateTime = new DateTime(endDateTimeStr);
 
@@ -28,5 +52,11 @@ public class CalendarService {
         event.setEnd(endEventDateTime);
         event = calendar.events().insert(CALENDAR_ID, event).execute();
         return event.getId();
+    }
+
+    @Operation(summary = "예약 삭제")
+    public void deleteReservation(String eventId) throws Exception {
+        Calendar calendar = getCalendarService();
+        calendar.events().delete(CALENDAR_ID, eventId).execute();
     }
 }
