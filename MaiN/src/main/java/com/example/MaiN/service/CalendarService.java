@@ -152,7 +152,7 @@ public class CalendarService {
     }
 
     // 세미나실 2 필터링, 대학원생 예약과 학부생 예약 처리, map으로 변환하는 예약 필터링 및 처리 메서드
-    public static Map<String, Object> filterReservation(List<Event> eventsList, LocalDate date) {
+    private static Map<String, Object> filterReservation(List<Event> eventsList, LocalDate date) {
 
         Map<String, Object> eventMap = Map.of();
 
