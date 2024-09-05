@@ -128,6 +128,29 @@ public class CalendarService {
         calendar.events().delete(CALENDAR_ID, eventId).execute();
     }
 
+    public DateTime updateReservation(String eventId, List studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception {
+        //예약 수정 로직
+        Calendar calendar = getCalendarService();
+        Event event = calendar.events().get(CALENDAR_ID, eventId).execute();
+        String summary = String.format("세미나실2%s", studentIds);
+
+        //EventDateTime 객체 생성
+        DateTime startDateTime = new DateTime(startDateTimeStr);
+        DateTime endDateTime = new DateTime(endDateTimeStr);
+        EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
+        EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
+
+        // 기존 일정에 업데이트
+        event.setSummary(summary)
+                .setStart(startEventDateTime)
+                .setEnd(endEventDateTime);
+
+        // 구글캘린더에 예약 등록
+        Event updatedEvent = calendar.events().update(CALENDAR_ID, eventId, event).execute();
+
+        return updatedEvent.getUpdated();
+    }
+
     // 세미나실 2 필터링, 대학원생 예약과 학부생 예약 처리, map으로 변환하는 예약 필터링 및 처리 메서드
     public static Map<String, Object> filterReservation(List<Event> eventsList, LocalDate date) {
 
