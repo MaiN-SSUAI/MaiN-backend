@@ -123,10 +123,10 @@ public class ReservationService {
             int userId = user.map(User::getId).orElseGet(() -> addUninformedUser(studentId));
 
             //요청된 studentId 리스트에 없는 studentId 인 경우 제거하기
-            deletedStudent.remove((Integer)userId);
+            deletedStudent.remove(userId);
 
             if(!existingStudentIds.contains(userId)){
-                addedStudent.add((Integer)userId);
+                addedStudent.add(userId);
             }
         }
 
@@ -145,6 +145,9 @@ public class ReservationService {
         //사용목적, 사용시간 변경
         reserv.updateReserv(eventDto);
         reservRepository.save(reserv);
+
+        //구글 캘린더 수정 메소드 호출
+        calendarService.updateReservation(reserv.getEventId(),studentIds,eventDto.getStartDateTimeStr(),eventDto.getEndDateTimeStr());
 
         return "예약 수정 성공";
     }
