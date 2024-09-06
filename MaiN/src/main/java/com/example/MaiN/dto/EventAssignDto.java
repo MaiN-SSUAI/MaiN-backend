@@ -1,13 +1,10 @@
 package com.example.MaiN.dto;
 
-import com.example.MaiN.entity.Reserv;
-import com.example.MaiN.entity.EventAssign;
+import com.example.MaiN.entity.ReservAssign;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,11 +13,4 @@ import java.util.List;
 public class EventAssignDto {
     private int reservId;
     private int userId;
-
-    public EventAssign toEntity() {
-        return new EventAssign(
-                this.reservId,
-                this.userId
-        );
-    }
 }
