@@ -28,8 +28,7 @@ public class CalendarService {
     private static final String APPLICATION_NAME = "Google Calendar API";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
-    @Value("${calendar.id}")
-    private static String CALENDAR_ID;
+    private static String CALENDAR_ID = "d4075e67660e0f6bd313a60f05cbb102bc1b2a632c17c1a7e11acc1cf10fd8fe@group.calendar.google.com";
 
     private static ReservRepository reservRepository;
     public CalendarService(ReservRepository reservRepository){
@@ -105,7 +104,7 @@ public class CalendarService {
         EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
 
         // 일정 제목 설정 -> "세미나실2 / [20220000, 20221111]"
-        String summary = String.format("세미나실2%s", studentIds);
+        String summary = String.format("세미나실2/%s", studentIds);
 
         // Event 객체 생성
         Event event = new Event()
@@ -151,15 +150,15 @@ public class CalendarService {
     }
 
     // 세미나실 2 필터링, 대학원생 예약과 학부생 예약 처리, map으로 변환하는 예약 필터링 및 처리 메서드
-    private static Map<String, Object> filterReservation(List<Event> eventsList, LocalDate date) {
+    private static List<Map<String, Object>> filterReservation(List<Event> eventsList, LocalDate date) {
 
-        Map<String, Object> eventMap = Map.of();
+        List<Map<String, Object>> eventMaps = new ArrayList<>();
 
         for (Event event : eventsList) {
             String[] parts = event.getSummary().split("/");
 
             //세미나실2만 필터링
-            if (parts.length > 0 && parts[0].contains("2")) {
+            if (parts.length > 1 && parts[0].contains("2")) {
                 //EventId를 통해 데이터베이스에 존재하는 이벤트를 필터링
                 Reserv dbEvent = reservRepository.findByEventId(event.getId());
 
@@ -172,11 +171,12 @@ public class CalendarService {
                 List<String> studentNoList = Arrays.asList(parts[1].replace("[", "").replace("]", "").trim().split(", "));
 
                 // 이벤트를 map으로 변환
-                eventMap = toMap(event, date, reservId, purpose, studentNoList);
+                Map<String, Object> eventMap = toMap(event, date, reservId, purpose, studentNoList);
+                eventMaps.add(eventMap);
 
             }
         }
-        return eventMap;
+        return eventMaps;
     }
 
     // 캘린더에서 하루 치 예약 가져오기
@@ -202,14 +202,14 @@ public class CalendarService {
         // 가져온 이벤트들을 처리해서 리스트에 저장
         List<Map<String, Object>> dayEventList = new ArrayList<>();
 
-        Map<String, Object> eventMap = filterReservation(eventsList, date);
+        List<Map<String, Object>> eventMaps = filterReservation(eventsList, date);
 
-        dayEventList.add(eventMap);
+        // 모든 이벤트를 dayEventList에 추가
+        dayEventList.addAll(eventMaps);
 
         return dayEventList;
     }
 
-    // 캘린더에서 일주일 치 예약 가져오기
     public Map<String, List<Map<String, Object>>> getWeekCalendarReservations(LocalDate date) throws Exception {
         Calendar calendar = getCalendarService();
 
@@ -220,6 +220,7 @@ public class CalendarService {
             // 요일의 짧은 이름 가져오기 ex.)MON, TUE ...
             weeklyEvents.put(day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3), new ArrayList<>());
         }
+
         // 스레드풀 생성
         ExecutorService executor = Executors.newFixedThreadPool(7);
         List<Future<Map<String, List<Map<String, Object>>>>> futures = new ArrayList<>();
@@ -231,6 +232,7 @@ public class CalendarService {
         // 월요일부터 일요일까지 반복
         for (LocalDate currentDate = startOfWeek; !currentDate.isAfter(endOfWeek); currentDate = currentDate.plusDays(1)) {
             LocalDate finalCurrentDate = currentDate;
+
             // 비동기 작업 제출
             Future<Map<String, List<Map<String, Object>>>> future = executor.submit(() -> {
 
@@ -252,9 +254,11 @@ public class CalendarService {
                 // 가져온 이벤트들을 처리해서 리스트에 저장
                 List<Map<String, Object>> dayEventList = new ArrayList<>();
 
-                Map<String, Object> eventMap = filterReservation(eventsList, date);
+                // 이벤트들을 리스트로 변환
+                List<Map<String, Object>> eventMaps = filterReservation(eventsList, finalCurrentDate);
 
-                dayEventList.add(eventMap);
+                // 모든 이벤트를 dayEventList에 추가
+                dayEventList.addAll(eventMaps);
 
                 // 비동기 결과 저장
                 String dayOfWeek = finalCurrentDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3);
@@ -280,5 +284,4 @@ public class CalendarService {
         executor.shutdown();
         return weeklyEvents;
     }
-
 }

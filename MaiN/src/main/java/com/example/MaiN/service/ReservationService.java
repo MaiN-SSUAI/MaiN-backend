@@ -41,9 +41,8 @@ public class ReservationService {
     //예약 등록
     @Transactional
     public String addReservation(EventDto eventDto) throws Exception {
-
         // 예약 제한사항 체크 (2시간 이상, 30분 미만 금지, 2인 이상, 겹치는지 확인)
-        reservationValidService.checkReservation(eventDto.getEndDateTimeStr(),eventDto.getStartDateTimeStr(),eventDto.getStudentIds());
+        reservationValidService.checkReservation(eventDto.getStartDateTimeStr(),eventDto.getEndDateTimeStr(),eventDto.getStudentIds());
 
         List<String> studentIds = eventDto.getStudentIds();
 
@@ -107,7 +106,7 @@ public class ReservationService {
         if(reserv == null){
             throw new CustomException("존재하지 않는 예약입니다.", CustomErrorCode.NOT_EXIST_RESERVATION);
         }
-        reservationValidService.checkReservation(eventDto.getEndDateTimeStr(),eventDto.getStartDateTimeStr(),eventDto.getStudentIds());
+        reservationValidService.checkReservation(eventDto.getStartDateTimeStr(),eventDto.getEndDateTimeStr(),eventDto.getStudentIds());
 
         //사용 구성원이 변경되었을 경우 대비하여 확인
         List<String> studentIds = eventDto.getStudentIds();
