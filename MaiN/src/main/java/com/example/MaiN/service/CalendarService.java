@@ -180,7 +180,7 @@ public class CalendarService {
     }
 
     // 캘린더에서 하루 치 예약 가져오기
-    public static List<Map<String, Object>> getDayCalendarReservations(LocalDate date) throws Exception {
+    public List<Map<String, Object>> getDayCalendarReservations(LocalDate date) throws Exception {
 
         Calendar calendar = getCalendarService();
 

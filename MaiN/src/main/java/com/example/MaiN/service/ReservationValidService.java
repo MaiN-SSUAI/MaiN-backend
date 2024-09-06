@@ -1,6 +1,5 @@
 package com.example.MaiN.service;
 
-import com.example.MaiN.CalendarService.CalendarGetService;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 //import com.example.MaiN.entity.Event;
@@ -18,6 +17,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +27,7 @@ public class ReservationValidService {
 
     private final ReservRepository reservRepository;
     private final ReservAssignRepository reservAssignRepository;
-    private final CalendarGetService calendarGetService;
+    private final CalendarService calendarService;
 
     //예약 제한 사항 (예약 시간 관련) 체크
     public void checkReservation(String startDateTimeStr, String endDateTimeStr, List<String> studentIds) throws Exception {
@@ -84,24 +84,13 @@ public class ReservationValidService {
     public void checkReservationOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate) throws Exception {
 
         //구글 캘린더에 저장되어 있는 예약 불러오기
-        ResponseEntity<?> response = calendarGetService.getCalendarEvents(startDate);
+        List<Map<String, Object>> response = calendarService.getDayCalendarReservations(startDate);
 
-        List<Map<String, Object>> existingEventsJson = new ArrayList<>();
-        if (response.getBody() instanceof List<?>) {
-            List<?> rawList = (List<?>) response.getBody();
-            if (!rawList.isEmpty() && rawList.get(0) instanceof Map) {
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> castedList = (List<Map<String, Object>>) rawList;
-                existingEventsJson = castedList;
-            }
-        }
-        if (!existingEventsJson.equals("No Upcoming events found")) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            for (Map<String, Object> event : existingEventsJson) {
-                DateTime existingStart = new DateTime((String) event.get("start"));
-                DateTime existingEnd = new DateTime((String) event.get("end"));
-                if (startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()) {
-                    // 겹치는 이벤트 발견하면 -> 로그 띄움
+        if(!response.isEmpty()){
+            for(Map<String, Object> reservation : response){
+                DateTime existingStart = new DateTime((String) reservation.get("start"));
+                DateTime existingEnd = new DateTime((String) reservation.get("end"));
+                if(startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()){
                     throw new CustomException("이미 예약된 일정이 있습니다.", CustomErrorCode.EVENT_OVERLAPS);
                 }
             }
