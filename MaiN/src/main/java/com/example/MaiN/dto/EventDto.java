@@ -1,16 +1,11 @@
 package com.example.MaiN.dto;
 
 import com.example.MaiN.entity.Reserv;
-import com.example.MaiN.entity.EventAssign;
-import com.google.api.client.util.DateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
-
-import java.time.OffsetDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor

@@ -20,6 +20,7 @@ public enum CustomErrorCode implements EnumModel {
 
     //validCheck
     MORE_THAN_2HOURS(400, "V001", "More than 2 Hours"),
+    LESS_THAN_30MINUTES(400,"V001", "Less than 30 Minutes"),
     MORE_THAN_2APPOINTS(400, "V002", "More than 2 appointments a week"),
     EVENT_OVERLAPS(400, "V003", "Event Overlaps"),
     OUT_OF_DURATION(400, "V004", "Out of Duration reservation"),
@@ -27,7 +28,8 @@ public enum CustomErrorCode implements EnumModel {
     UNABLE_TO_ADD(400, "V006", "Unable to add reservation"),
 
     //Reservation
-    RESERVATION_ONE_PERSON(400, "R001", "Impossible to make a reservation alone");
+    RESERVATION_ONE_PERSON(400, "R001", "Impossible to make a reservation alone"),
+    NOT_EXIST_RESERVATION(400, "R002", "Not exist reservation");
 
     private int status;
     private String code;

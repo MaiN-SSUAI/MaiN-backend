@@ -1,5 +1,6 @@
 package com.example.MaiN.entity;
 
+import com.example.MaiN.dto.EventDto;
 import com.google.api.client.util.DateTime;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,15 +45,21 @@ public class Reserv {
         this.eventId = eventId;
     }
 
-    public void patch(Reserv event) {
-        if(event.purpose != null)
-            this.purpose = event.purpose;
-        if (event.startTime != null)
-            this.startTime = event.startTime;
-        if (event.endTime != null)
-            this.endTime = event.endTime;
-
+    public Reserv(EventDto eventDto){
+        this.id = eventDto.getId();
+        this.userId = eventDto.getUserId();
+        this.purpose = eventDto.getPurpose();
+        this.startTime = eventDto.getStartDateTimeStr();
+        this.endTime = eventDto.getEndDateTimeStr();
+        this.eventId = eventDto.getEventId();
     }
+
+    public void updateReserv(EventDto eventDto){
+        if(!eventDto.getPurpose().isEmpty()) this.purpose = eventDto.getPurpose();
+        if(!eventDto.getStartDateTimeStr().isEmpty()) this.startTime = eventDto.getStartDateTimeStr();
+        if(!eventDto.getEndDateTimeStr().isEmpty()) this.endTime = eventDto.getEndDateTimeStr();
+    }
+
 
     public String getEventId() {
         return eventId;

@@ -10,19 +10,24 @@ import lombok.Setter;
 @Setter
 @Getter
 @Table(name="reserv_assign")
-public class EventAssign {
+public class ReservAssign {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "reservation_id")
-    private int reservId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "reservation_id")
+    private Reserv reserv;
 
     @Column(name = "user_id")
     private int userId;
 
-    public EventAssign(int reservId, int userId) {
-        this.reservId = reservId;
+    public ReservAssign(Reserv reserv, int userId) {
+        this.reserv = reserv;
         this.userId = userId;
+    }
+
+    public Integer getReservId() {
+        return reserv.getId();
     }
 }

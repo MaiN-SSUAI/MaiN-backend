@@ -1,7 +1,6 @@
 package com.example.MaiN.security;
 
-import com.example.MaiN.service.CalendarService;
-import com.google.api.client.auth.oauth2.Credential;
+import com.example.MaiN.controller.ReservationController;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -26,6 +25,13 @@ public class GoogleCredentialProvider {
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
     private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static com.google.api.client.auth.oauth2.Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
+            throws IOException {
+        // Load client secrets.
+        InputStream in = ReservationController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        if (in == null) {
+            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
+        }
 
     public static Credential getCredential() throws IOException {
         InputStream in = CalendarService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
