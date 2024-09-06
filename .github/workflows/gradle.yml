@@ -51,7 +51,7 @@ jobs:
         APPLICATION_YML: ${{ secrets.APPLICATION_YML }}
         CREDENTIALS: ${{ secrets.CREDENTIALS }}
         RESERVE_CALENDAR: ${{ secrets.RESERVE_CALENDAR }}
-        FIREBASE_KEY: ${{ secretes.FIREBASE_KEY }}
+        FIREBASE_KEY: ${{ secrets.FIREBASE_KEY }}
       run: |
         mkdir -p $DIR
         echo $APPLICATION_PROPERTIES | base64 --decode > $DIR/application.properties
