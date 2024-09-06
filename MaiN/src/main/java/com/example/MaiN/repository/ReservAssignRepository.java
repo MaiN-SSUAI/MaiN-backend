@@ -10,12 +10,10 @@ import java.util.List;
 
 @Repository
 public interface ReservAssignRepository extends JpaRepository<ReservAssign, Integer> {
-//    ReservAssign findByEventId(String eventId);
-    List<ReservAssign> findByReservId(int reservation_id);
 
-    List<ReservAssign> findByUserId(@Param("userId") int userId);
-
-    List<Integer> findUserIdsByReservId(int reservId);
+    List<ReservAssign> findByUserId(int userId);
 
     void deleteByReservAndUserId(Reserv reserv, Integer userId);
+
+    List<Integer> findUserIdsByReserv(Reserv reserv);
 }

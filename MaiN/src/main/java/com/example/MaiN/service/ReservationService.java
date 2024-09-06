@@ -111,7 +111,8 @@ public class ReservationService {
 
         //사용 구성원이 변경되었을 경우 대비하여 확인
         List<String> studentIds = eventDto.getStudentIds();
-        List<Integer> existingStudentIds = reservAssignRepository.findUserIdsByReservId(reservId);
+//        List<Integer> existingStudentIds = reservAssignRepository.findUserIdsByReservId(reservId);
+        List<Integer> existingStudentIds = reservAssignRepository.findUserIdsByReserv(reserv);
 
         //추가할 학생 userId 리스트
         List<Integer> addedStudent = new ArrayList<>();
