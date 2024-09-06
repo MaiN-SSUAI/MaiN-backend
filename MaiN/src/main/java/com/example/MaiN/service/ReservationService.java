@@ -20,11 +20,11 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
-    private static final String CALENDAR_ID = "d4075e67660e0f6bd313a60f05cbb102bc1b2a632c17c1a7e11acc1cf10fd8fe@group.calendar.google.com"; //학부
     private final ReservRepository reservRepository;
     private final UserRepository userRepository;
     private final ReservAssignRepository reservAssignRepository;
     private final ReservationValidService reservationValidService;
+    private final CalendarService calendarService;
 
     //예약 제한 사항 (사용자 사용시간 관련) 체크
     public void checkUser(String studentId, LocalDate date) {
@@ -61,8 +61,7 @@ public class ReservationService {
                 //주최자인 경우
                 if (i == 0) {
                     //구글 캘린더에 올리는 메소드
-                    String eventId = "A"; //임시
-                    //String eventId = calendarService.addReservation(studentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                    String eventId = calendarService.addReservation(studentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
                     eventDto.setEventId(eventId);
 
                     //Reserv 테이블에 데이터 저장
@@ -91,7 +90,7 @@ public class ReservationService {
         String eventId = reserv.getEventId();
 
         //구글 캘린더에서 삭제 메소드 호출하기
-        //calendarService.deleteReservation(eventId);
+        calendarService.deleteReservation(eventId);
 
         reservRepository.deleteById(reservId);
         return "예약 삭제 성공";
