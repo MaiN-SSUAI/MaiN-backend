@@ -1,15 +1,18 @@
 package com.example.MaiN.controller;
 
+import com.example.MaiN.service.CalendarService;
 import com.example.MaiN.service.ReservationService;
 import com.example.MaiN.dto.EventDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @RestController
@@ -19,6 +22,19 @@ import java.time.LocalDate;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final CalendarService calendarService;
+
+    @GetMapping("/events")
+    @Operation(summary = "세미나실 예약 조회 (DAY)")
+    public ResponseEntity<?> getDayEvents(@RequestParam("date")LocalDate date) throws Exception {
+        return ResponseEntity.ok(calendarService.getDayCalendarReservations(date));
+    }
+
+    @GetMapping("/events/week")
+    @Operation(summary = "세미나실 예약 조회 (WEEK)")
+    public ResponseEntity<?> getWeekEvents(@RequestParam("date")LocalDate date) throws Exception {
+        return ResponseEntity.ok(calendarService.getWeekCalendarReservations(date));
+    }
 
     @GetMapping("/check/user")
     @Operation(summary = "세미나실 사용자 등록")
