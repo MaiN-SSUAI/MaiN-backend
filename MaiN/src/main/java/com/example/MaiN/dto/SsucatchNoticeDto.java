@@ -15,14 +15,16 @@ public class SsucatchNoticeDto {
     private final String progress;
     private final String category;
     private final LocalDate date;
+    private final boolean favorite;
 
-    public SsucatchNoticeDto(int id, String title, String link, String progress, String category, LocalDate date) {
+    public SsucatchNoticeDto(int id, String title, String link, String progress, String category, LocalDate date, boolean favorite) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
         this.progress = progress;
         this.category = category;
         this.date = date;
+        this.favorite = favorite;
     }
 
     public int getId() {
@@ -49,7 +51,8 @@ public class SsucatchNoticeDto {
                 ssucatchNotice.getLink(),
                 ssucatchNotice.getProgress(),
                 ssucatchNotice.getCategory(),
-                ssucatchNotice.getDate()
+                ssucatchNotice.getDate(),
+                ssucatchNotice.isFavorites()
         );
     }
 }

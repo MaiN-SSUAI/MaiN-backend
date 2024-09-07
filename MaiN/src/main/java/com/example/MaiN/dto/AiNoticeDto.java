@@ -13,12 +13,14 @@ public class AiNoticeDto {
     private final String title;
     private final String link;
     private final LocalDate date;
+    private final boolean favorite;
 
-    public AiNoticeDto(int id, String title, String link, LocalDate date) {
+    public AiNoticeDto(int id, String title, String link, LocalDate date, Boolean favorite) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
         this.date = date;
+        this.favorite = favorite;
     }
 
     public int getId() {
@@ -33,6 +35,7 @@ public class AiNoticeDto {
     public LocalDate getDate() {
         return date;
     }
+    public boolean getFavorite() {return favorite;}
 
     // 추가된 from 메서드
     public static AiNoticeDto from(AiNotice aiNotice) {
@@ -40,7 +43,8 @@ public class AiNoticeDto {
                 Math.toIntExact(aiNotice.getId()),
                 aiNotice.getTitle(),
                 aiNotice.getLink(),
-                aiNotice.getDate()
+                aiNotice.getDate(),
+                aiNotice.isFavorites()
         );
     }
 }

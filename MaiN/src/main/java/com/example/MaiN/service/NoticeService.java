@@ -32,68 +32,42 @@ public class NoticeService {
     private final NoticeFavoriteRepository noticeFavoriteRepository;
     private final UserRepository userRepository;
 
-    // 공지사항 조회
-    public Page<AiNoticeDto> listAllAiNotices(int pageNo) {
+
+    // 통합된 공지사항 조회 메서드
+    public Page<?> listAllNotices(String noticeType, String studentNo, int pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 30);
-        return aiNoticeRepository.findAllProjectedBy(pageable);
+        // 학번 유효성 검사
+        userRepository.findByStudentNo(studentNo)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자: " + studentNo));
+        switch (noticeType) {
+            case "ai":
+                return aiNoticeRepository.findAllWithFavoriteStatus(studentNo, pageable);
+            case "funsys":
+                return funsysNoticeRepository.findAllWithFavoriteStatus(studentNo, pageable);
+            case "ssucatch":
+                return ssucatchNoticeRepository.findAllWithFavoriteStatus(studentNo, pageable);
+            default:
+                throw new IllegalArgumentException("적절하지 않은 공지사항 타입: " + noticeType);
+        }
     }
 
-    public Page<FunsysNoticeDto> listAllFunsysNotices(int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 30);
-        return funsysNoticeRepository.findAllProjectedBy(pageable);
-    }
-
-    public Page<SsucatchNoticeDto> listAllSsucatchNotices(int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 30);
-        return ssucatchNoticeRepository.findAllProjectedBy(pageable);
-    }
-
-    // 북마크 조회
-    public Page<AiNoticeDto> listAiFavorites(String studentNo, int pageNo) {
-        return listFavorites(
-                studentNo,
-                pageNo,
-                userId -> noticeFavoriteRepository.findAiFavoriteIdsByUserId(userId, PageRequest.of(pageNo - 1, 30)),
-                aiNoticeRepository,
-                AiNoticeDto::from
-        );
-    }
-    public Page<FunsysNoticeDto> listFunsysFavorites(String studentNo, int pageNo) {
-        return listFavorites(
-                studentNo,
-                pageNo,
-                userId -> noticeFavoriteRepository.findFunsysFavoriteIdsByUserId(userId, PageRequest.of(pageNo - 1, 30)),
-                funsysNoticeRepository,
-                FunsysNoticeDto::from
-        );
-    }
-    public Page<SsucatchNoticeDto> listSsucatchFavorites(String studentNo, int pageNo) {
-        return listFavorites(
-                studentNo,
-                pageNo,
-                userId -> noticeFavoriteRepository.findSsucatchFavoriteIdsByUserId(userId, PageRequest.of(pageNo - 1, 30)),
-                ssucatchNoticeRepository,
-                SsucatchNoticeDto::from
-        );
-    }
-
-    // 북마크 추가
+    // 북마크 등록
     @Transactional
     public void addFavorite(String studentNo, Integer noticeId, String noticeType) {
         User user = userRepository.findByStudentNo(studentNo)
-                .orElseThrow(() -> new RuntimeException("User not found with student number: " + studentNo));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자: " + studentNo));
 
-        // 이미 존재하는 북마크인지 확인
+        // 이미 등록된 북마크인지 확인
         Optional<NoticeFavorite> existingFavorite = noticeFavoriteRepository
                 .findByUserIdAndNoticeIdAndNoticeType(user.getId(), noticeId, noticeType);
         if (existingFavorite.isPresent()) {
-            throw new RuntimeException("Favorite already exists");
+            throw new RuntimeException("이미 등록된 북마크");
         }
 
         // 공지사항 존재 여부 확인
         boolean noticeExists = checkNoticeExists(noticeId, noticeType);
         if (!noticeExists) {
-            throw new RuntimeException("Notice not found");
+            throw new RuntimeException("존재하지 않는 공지사항: " + noticeId);
         }
 
         NoticeFavorite favorite = new NoticeFavorite(user, noticeId, noticeType);
@@ -104,11 +78,11 @@ public class NoticeService {
     @Transactional
     public void removeFavorite(String studentNo, Integer noticeId, String noticeType) {
         User user = userRepository.findByStudentNo(studentNo)
-                .orElseThrow(() -> new RuntimeException("User not found with student number: " + studentNo));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자: " + studentNo));
 
         NoticeFavorite favorite = noticeFavoriteRepository
                 .findByUserIdAndNoticeIdAndNoticeType(user.getId(), noticeId, noticeType)
-                .orElseThrow(() -> new RuntimeException("Favorite not found"));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 북마크: " + noticeId));
 
         noticeFavoriteRepository.delete(favorite);
     }
@@ -123,29 +97,58 @@ public class NoticeService {
             case "ssucatch":
                 return ssucatchNoticeRepository.existsById(noticeId);
             default:
-                throw new IllegalArgumentException("Invalid notice type");
+                throw new IllegalArgumentException("적절하지 않은 공지사항 타입");
         }
     }
 
-    // 북마크 조회 공통 메소드
-    private <T, D, ID> Page<D> listFavorites(String studentNo, int pageNo,
-                                             Function<Integer, Page<ID>> favoriteIdsFinder,
-                                             JpaRepository<T, ID> noticeRepository,
-                                             Function<T, D> dtoMapper) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 30);
-        User user = userRepository.findByStudentNo(studentNo)
-                .orElseThrow(() -> new RuntimeException("User not found with student number: " + studentNo));
-
-        Page<ID> favoriteNoticeIds = favoriteIdsFinder.apply(user.getId());
-        if (favoriteNoticeIds.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        List<T> notices = noticeRepository.findAllById(favoriteNoticeIds.getContent());
-        List<D> noticeDtos = notices.stream()
-                .map(dtoMapper)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(noticeDtos, pageable, favoriteNoticeIds.getTotalElements());
-    }
+//    // 북마크 조회
+//    public Page<AiNoticeDto> listAiFavorites(String studentNo, int pageNo) {
+//        return listFavorites(
+//                studentNo,
+//                pageNo,
+//                userId -> noticeFavoriteRepository.findAiFavoriteIdsByUserId(userId, PageRequest.of(pageNo - 1, 30)),
+//                aiNoticeRepository,
+//                AiNoticeDto::from
+//        );
+//    }
+//    public Page<FunsysNoticeDto> listFunsysFavorites(String studentNo, int pageNo) {
+//        return listFavorites(
+//                studentNo,
+//                pageNo,
+//                userId -> noticeFavoriteRepository.findFunsysFavoriteIdsByUserId(userId, PageRequest.of(pageNo - 1, 30)),
+//                funsysNoticeRepository,
+//                FunsysNoticeDto::from
+//        );
+//    }
+//    public Page<SsucatchNoticeDto> listSsucatchFavorites(String studentNo, int pageNo) {
+//        return listFavorites(
+//                studentNo,
+//                pageNo,
+//                userId -> noticeFavoriteRepository.findSsucatchFavoriteIdsByUserId(userId, PageRequest.of(pageNo - 1, 30)),
+//                ssucatchNoticeRepository,
+//                SsucatchNoticeDto::from
+//        );
+//    }
+//
+//    // 북마크 조회 공통 메소드
+//    private <T, D, ID> Page<D> listFavorites(String studentNo, int pageNo,
+//                                             Function<Integer, Page<ID>> favoriteIdsFinder,
+//                                             JpaRepository<T, ID> noticeRepository,
+//                                             Function<T, D> dtoMapper) {
+//        Pageable pageable = PageRequest.of(pageNo - 1, 30);
+//        User user = userRepository.findByStudentNo(studentNo)
+//                .orElseThrow(() -> new RuntimeException("User not found with student number: " + studentNo));
+//
+//        Page<ID> favoriteNoticeIds = favoriteIdsFinder.apply(user.getId());
+//        if (favoriteNoticeIds.isEmpty()) {
+//            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+//        }
+//
+//        List<T> notices = noticeRepository.findAllById(favoriteNoticeIds.getContent());
+//        List<D> noticeDtos = notices.stream()
+//                .map(dtoMapper)
+//                .collect(Collectors.toList());
+//
+//        return new PageImpl<>(noticeDtos, pageable, favoriteNoticeIds.getTotalElements());
+//    }
 }
