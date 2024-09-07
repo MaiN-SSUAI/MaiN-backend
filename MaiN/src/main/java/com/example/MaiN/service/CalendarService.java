@@ -130,7 +130,7 @@ public class CalendarService {
         //예약 수정 로직
         Calendar calendar = getCalendarService();
         Event event = calendar.events().get(CALENDAR_ID, eventId).execute();
-        String summary = String.format("세미나실2%s", studentIds);
+        String summary = String.format("세미나실2/%s", studentIds);
 
         //EventDateTime 객체 생성
         DateTime startDateTime = new DateTime(startDateTimeStr);

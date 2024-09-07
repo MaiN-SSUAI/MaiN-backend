@@ -1,8 +1,11 @@
 package com.example.MaiN.controller;
 
+import com.example.MaiN.entity.Reserv;
+import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.service.CalendarService;
 import com.example.MaiN.service.ReservationService;
 import com.example.MaiN.dto.EventDto;
+import com.google.api.client.util.DateTime;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class ReservationController {
 
     private final ReservationService reservationService;
     private final CalendarService calendarService;
+    private final ReservRepository reservRepository;
 
     @GetMapping("/events")
     @Operation(summary = "세미나실 예약 조회 (DAY)")
@@ -61,5 +65,12 @@ public class ReservationController {
     @Operation(summary = "예약 수정")
     public ResponseEntity<String> updateReservation(@PathVariable("reservId") int reservId, @RequestBody EventDto eventDto) throws Exception {
         return ResponseEntity.ok(reservationService.updateReservation(reservId,eventDto));
+    }
+
+    // 수정 개발자 테스트
+    @PatchMapping("/test/patch/{reservId}")
+    public ResponseEntity<DateTime> testUpdateReservation(@PathVariable("reservId") int reservId, @RequestBody EventDto eventDto) throws Exception {
+        Reserv reserv = reservRepository.findByReservId(reservId);
+        return ResponseEntity.ok(calendarService.updateReservation(reserv.getEventId(), eventDto.getStudentIds(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr()));
     }
 }
