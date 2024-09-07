@@ -5,6 +5,7 @@ import com.google.api.client.util.DateTime;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import java.time.OffsetDateTime;
@@ -13,7 +14,6 @@ import java.time.OffsetDateTime;
 @Entity
 @Setter
 @Getter
-@Builder
 @Table(name="reserv")
 public class Reserv {
     @Id
@@ -35,6 +35,8 @@ public class Reserv {
     @Column(name = "event_id")
     private String eventId;
 
+    @OneToMany(mappedBy = "reserv", cascade = CascadeType.REMOVE)
+    private List<ReservAssign> reservAssigns = new ArrayList<>();
 
     public Reserv(int id, int userId, String purpose, String startTime, String endTime, String eventId) {
         this.id = id;
@@ -45,9 +47,9 @@ public class Reserv {
         this.eventId = eventId;
     }
 
-    public Reserv(EventDto eventDto){
+    public Reserv(EventDto eventDto, int userId){
         this.id = eventDto.getId();
-        this.userId = eventDto.getUserId();
+        this.userId = userId;
         this.purpose = eventDto.getPurpose();
         this.startTime = eventDto.getStartDateTimeStr();
         this.endTime = eventDto.getEndDateTimeStr();
@@ -55,9 +57,9 @@ public class Reserv {
     }
 
     public void updateReserv(EventDto eventDto){
-        if(!eventDto.getPurpose().isEmpty()) this.purpose = eventDto.getPurpose();
-        if(!eventDto.getStartDateTimeStr().isEmpty()) this.startTime = eventDto.getStartDateTimeStr();
-        if(!eventDto.getEndDateTimeStr().isEmpty()) this.endTime = eventDto.getEndDateTimeStr();
+        this.purpose = eventDto.getPurpose();
+        this.startTime = eventDto.getStartDateTimeStr();
+        this.endTime = eventDto.getEndDateTimeStr();
     }
 
 

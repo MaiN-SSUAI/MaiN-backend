@@ -64,7 +64,7 @@ public class ReservationService {
                     eventDto.setEventId(eventId);
 
                     //Reserv 테이블에 데이터 저장
-                    Reserv reserv = new Reserv(eventDto);
+                    Reserv reserv = new Reserv(eventDto,userId);
                     savedReserv = reservRepository.save(reserv);
                 }
 
@@ -100,57 +100,66 @@ public class ReservationService {
     public String updateReservation(int reservId, EventDto eventDto) throws Exception {
         Reserv reserv = reservRepository.findByReservId(reservId);
 
-        //시작시간 30분 이후인지 확인
+        // 시작시간 30분 이후인지 확인
         reservationValidService.checkDeleteTime(reservId);
 
-        if(reserv == null){
+        if (reserv == null) {
             throw new CustomException("존재하지 않는 예약입니다.", CustomErrorCode.NOT_EXIST_RESERVATION);
         }
-        reservationValidService.checkReservation(eventDto.getStartDateTimeStr(),eventDto.getEndDateTimeStr(),eventDto.getStudentIds());
 
-        //사용 구성원이 변경되었을 경우 대비하여 확인
-        List<String> studentIds = eventDto.getStudentIds();
-//        List<Integer> existingStudentIds = reservAssignRepository.findUserIdsByReservId(reservId);
-        List<Integer> existingStudentIds = reservAssignRepository.findUserIdsByReserv(reserv);
+        // 예약 유효성 검사
+        reservationValidService.checkReservation(eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(), eventDto.getStudentIds());
 
-        //추가할 학생 userId 리스트
+        // 사용 구성원 변경
+        List<String> newStudentIds = eventDto.getStudentIds(); // 입력으로 받은 학번 리스트
+        List<Integer> existingUserIds = reservAssignRepository.findUserIdsByReservId(reservId); // 기존에 연결되어 있던 학생의 userId 리스트
+
+        System.out.println("newStudentIDs : " + newStudentIds);
+        System.out.println("existingUserIds : " + existingUserIds);
+
+        // 추가할 학생 userId 리스트
         List<Integer> addedStudent = new ArrayList<>();
-        //삭제될 학생 userId 리스트
-        List<Integer> deletedStudent = new ArrayList<>(existingStudentIds);
+        // 삭제될 학생 userId 리스트
+        List<Integer> deletedStudent = new ArrayList<>(existingUserIds);
 
-        for(String studentId : studentIds){
+        for (String studentId : newStudentIds) {
+            // 학번에 해당하는 userId 불러오기
             Optional<User> user = userRepository.findByStudentNo(studentId);
             int userId = user.map(User::getId).orElseGet(() -> addUninformedUser(studentId));
 
-            //요청된 studentId 리스트에 없는 studentId 인 경우 제거하기
-            deletedStudent.remove(userId);
+            // 요청된 studentId 리스트에 없는 사용자인 경우 제거하기
+            deletedStudent.remove(Integer.valueOf(userId));
 
-            if(!existingStudentIds.contains(userId)){
+            if (!existingUserIds.contains(userId)) {
                 addedStudent.add(userId);
             }
+
+            System.out.println("deletedStudent : " + deletedStudent);
+            System.out.println("addedStudent : " + addedStudent);
         }
 
-        //Reserv Assign 테이블의 데이터 수정
-        //학생 추가
-        for(Integer userId : addedStudent){
-            ReservAssign reservAssign = new ReservAssign(reserv,userId);
-            reservAssignRepository.save(reservAssign);
-        }
-
-        //학생 제거
-        for(Integer userId : deletedStudent){
-            reservAssignRepository.deleteByReservAndUserId(reserv,userId);
-        }
-
-        //사용목적, 사용시간 변경
+        // 사용목적, 사용시간 변경
         reserv.updateReserv(eventDto);
         reservRepository.save(reserv);
 
-        //구글 캘린더 수정 메소드 호출
-        calendarService.updateReservation(reserv.getEventId(),studentIds,eventDto.getStartDateTimeStr(),eventDto.getEndDateTimeStr());
+        // Reserv Assign 테이블의 데이터 수정
+        // 학생 추가
+        for (Integer userId : addedStudent) {
+            ReservAssign reservAssign = new ReservAssign(reserv, userId);
+            reservAssignRepository.save(reservAssign);
+        }
+
+        // 학생 제거
+        for (Integer userId : deletedStudent) {
+            reservAssignRepository.deleteByReservAndUserId(reserv, userId);
+        }
+
+        // 구글 캘린더 수정 메소드 호출
+        calendarService.updateReservation(reserv.getEventId(), newStudentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
 
         return "예약 수정 성공";
     }
+
 
     //앱 사용자가 아닌 경우 DB 에 저장
     @Transactional
