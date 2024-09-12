@@ -35,6 +35,7 @@ public class UsersController {
         if(stdMajor.equals("AI융합학부")) {
             LoginRequestDto loginRequestDto = new LoginRequestDto();
             loginRequestDto.setstudentNo(stdNo);
+            loginRequestDto.setFcmToken(usaintRequestDto.getFcmToken());
             return ResponseEntity.ok().body(usersService.login(loginRequestDto));
         }
         else{

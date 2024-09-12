@@ -12,4 +12,7 @@ public class UsaintRequestDto {
 
     @NotNull
     private String sIdno;
+
+    @NotNull
+    private String fcmToken;
 }
