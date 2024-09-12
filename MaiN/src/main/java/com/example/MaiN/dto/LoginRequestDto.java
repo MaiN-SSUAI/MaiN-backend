@@ -9,6 +9,7 @@ import lombok.*;
 public class LoginRequestDto {
     private String studentNo;
     private String studentName;
+    private String fcmToken;
 
     public String getstudentNo() {
         return studentNo;

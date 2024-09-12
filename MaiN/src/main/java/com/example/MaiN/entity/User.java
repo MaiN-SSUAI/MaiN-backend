@@ -26,6 +26,9 @@ public class User {
     @Column(name = "refresh_token")
     private String refreshToken;
 
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
     @Builder
     public User(String studentNo) {
         this.studentNo = studentNo;

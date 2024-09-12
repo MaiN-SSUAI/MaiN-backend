@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.time.OffsetDateTime;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Entity
@@ -65,5 +66,12 @@ public class Reserv {
 
     public String getEventId() {
         return eventId;
+    }
+
+    public List<String> getStudentIds() {
+        // ReservAssign 리스트에서 userId 필드를 추출하여 반환
+        return reservAssigns.stream()
+                .map(reservAssign -> String.valueOf(reservAssign.getUserId()))
+                .collect(Collectors.toList());
     }
 }
