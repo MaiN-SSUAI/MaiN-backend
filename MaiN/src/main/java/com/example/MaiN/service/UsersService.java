@@ -184,8 +184,11 @@ public class UsersService {
 
     public TokenDto login(@NotNull LoginRequestDto loginRequestDto) {
         String stdNo = loginRequestDto.getstudentNo();
+        String fcmToken = loginRequestDto.getFcmToken();
+
         String accessToken = jwtProvider.generateAccessToken(stdNo);
         String refreshToken = jwtProvider.generateRefreshToken();
+
 
         //refresh token을 db 에 저장
         //Optional<User> userOptional = userRepository.findByStudentNo(stdNo);
@@ -196,6 +199,7 @@ public class UsersService {
         User user = userOptional.get();
 
         user.setRefreshToken(refreshToken);
+        user.setFcmToken(fcmToken);
         userRepository.save(user);
 
         return TokenDto.builder()

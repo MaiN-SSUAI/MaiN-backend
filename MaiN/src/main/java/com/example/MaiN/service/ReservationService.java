@@ -4,6 +4,7 @@ package com.example.MaiN.service;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 import com.example.MaiN.dto.EventDto;
+import com.example.MaiN.dto.PushMessage;
 import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.entity.ReservAssign;
 import com.example.MaiN.entity.User;
@@ -11,9 +12,11 @@ import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.*;
 import java.util.*;
 
@@ -25,6 +28,7 @@ public class ReservationService {
     private final ReservAssignRepository reservAssignRepository;
     private final ReservationValidService reservationValidService;
     private final CalendarService calendarService;
+    private final FirebaseCloudMessageService firebaseCloudMessageService;
 
     //예약 제한 사항 (사용자 사용시간 관련) 체크
     public void checkUser(String studentId, LocalDate date) {
@@ -172,6 +176,33 @@ public class ReservationService {
         return userRepository.save(user).getId();
     }
 
+    // 예약 30분 전 알림 전송 메서드
+    public void sendNotificationToUsers(List<String> studentIds, PushMessage pushMessage, Object... args) throws IOException {
+        for (String studentId : studentIds) {
+            String token = getUserFcmToken(studentId);
+            if (token != null) {
+                firebaseCloudMessageService.sendMessageTo(token, pushMessage, args);
+            }
+        }
+    }
 
+    // studentId를 통해 FCM 토큰을 가져오는 메서드
+    private String getUserFcmToken(String studentId) {
+        User user = userRepository.findByStudentNo(studentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 studentId를 가진 사용자를 찾을 수 없습니다: " + studentId));
+        return user.getFcmToken();
+    }
+
+    public List<Reserv> getReservationsStartingIn30Minutes() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime in30Minutes = now.plusMinutes(30);
+        return reservRepository.findReservationsBetween(now, in30Minutes);
+    }
+
+    public List<Reserv> getReservationEndingIn5Minutes() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime in5Minutes = now.plusMinutes(5);
+        return reservRepository.findReservationsEndingIn5Minutes(now, in5Minutes);
+    }
 }
 
