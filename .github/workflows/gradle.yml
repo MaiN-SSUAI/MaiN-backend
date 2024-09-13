@@ -39,23 +39,35 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Create application.properties and application.yml based on branch
+      run: |
+        if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo $APPLICATION_MAIN_PROPERTIES | base64 --decode > src/main/resources/application.properties
+          echo $APPLICATION_MAIN_YML | base64 --decode > src/main/resources/application.yml
+        elif [ "${{ github.ref }}" == "refs/heads/release" ]; then
+          echo $APPLICATION_RELEASE_PROPERTIES | base64 --decode > src/main/resources/application.properties
+          echo $APPLICATION_RELEASE_YML | base64 --decode > src/main/resources/application.yml
+        fi
+      env:
+        APPLICATION_MAIN_PROPERTIES: ${{ secrets.APPLICATION_MAIN_PROPERTIES }}
+        APPLICATION_RELEASE_PROPERTIES: ${{ secrets.APPLICATION_RELEASE_PROPERTIES }}
+        APPLICATION_MAIN_YML: ${{ secrets.APPLICATION_MAIN_YML }}
+        APPLICATION_RELEASE_YML: ${{ secrets.APPLICATION_RELEASE_YML }}
+      working-directory: ${{ env.working-directory }}
+
     # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     # - name: Setup Gradle
     #   uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
 
-    - name: Create env file
+    - name: Create additional env file
       env:
         DIR: src/main/resources
-        APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
-        APPLICATION_YML: ${{ secrets.APPLICATION_YML }}
         CREDENTIALS: ${{ secrets.CREDENTIALS }}
         RESERVE_CALENDAR: ${{ secrets.RESERVE_CALENDAR }}
         FIREBASE_KEY: ${{ secrets.FIREBASE_KEY }}
       run: |
         mkdir -p $DIR
-        echo $APPLICATION_PROPERTIES | base64 --decode > $DIR/application.properties
-        echo $APPLICATION_YML | base64 --decode > $DIR/application.yml
         echo $CREDENTIALS | base64 --decode > $DIR/credentials.json
         echo $RESERVE_CALENDAR | base64 --decode > $DIR/reservecalendar-410115-141fd088c697.json
         echo $FIREBASE_KEY | base64 --decode > $DIR/main-c987b-firebase-adminsdk-ra8t9-b46c2708c7.json
