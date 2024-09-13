@@ -51,12 +51,14 @@ jobs:
         APPLICATION_YML: ${{ secrets.APPLICATION_YML }}
         CREDENTIALS: ${{ secrets.CREDENTIALS }}
         RESERVE_CALENDAR: ${{ secrets.RESERVE_CALENDAR }}
+        FIREBASE_KEY: ${{ secrets.FIREBASE_KEY }}
       run: |
         mkdir -p $DIR
         echo $APPLICATION_PROPERTIES | base64 --decode > $DIR/application.properties
         echo $APPLICATION_YML | base64 --decode > $DIR/application.yml
         echo $CREDENTIALS | base64 --decode > $DIR/credentials.json
         echo $RESERVE_CALENDAR | base64 --decode > $DIR/reservecalendar-410115-141fd088c697.json
+        echo $FIREBASE_KEY | base64 --decode > $DIR/main-c987b-firebase-adminsdk-ra8t9-b46c2708c7.json
       working-directory: ${{ env.working-directory }}
       
     - name: Grant execute permission for gradlew
