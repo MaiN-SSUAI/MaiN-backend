@@ -40,7 +40,14 @@ jobs:
         distribution: 'temurin'
 
     - name: Create application.properties and application.yml based on branch
+      env:
+        DIR: src/main/resources
+        APPLICATION_MAIN_PROPERTIES: ${{ secrets.APPLICATION_MAIN_PROPERTIES }}
+        APPLICATION_RELEASE_PROPERTIES: ${{ secrets.APPLICATION_RELEASE_PROPERTIES }}
+        APPLICATION_MAIN_YML: ${{ secrets.APPLICATION_MAIN_YML }}
+        APPLICATION_RELEASE_YML: ${{ secrets.APPLICATION_RELEASE_YML }}
       run: |
+        mkdir -p $DIR
         if [ "${{ github.ref }}" == "refs/heads/main" ]; then
           echo $APPLICATION_MAIN_PROPERTIES | base64 --decode > src/main/resources/application.properties
           echo $APPLICATION_MAIN_YML | base64 --decode > src/main/resources/application.yml
@@ -48,11 +55,6 @@ jobs:
           echo $APPLICATION_RELEASE_PROPERTIES | base64 --decode > src/main/resources/application.properties
           echo $APPLICATION_RELEASE_YML | base64 --decode > src/main/resources/application.yml
         fi
-      env:
-        APPLICATION_MAIN_PROPERTIES: ${{ secrets.APPLICATION_MAIN_PROPERTIES }}
-        APPLICATION_RELEASE_PROPERTIES: ${{ secrets.APPLICATION_RELEASE_PROPERTIES }}
-        APPLICATION_MAIN_YML: ${{ secrets.APPLICATION_MAIN_YML }}
-        APPLICATION_RELEASE_YML: ${{ secrets.APPLICATION_RELEASE_YML }}
       working-directory: ${{ env.working-directory }}
 
     # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
@@ -126,7 +128,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{secrets.SLACK_WEBHOOK_URL}}
           SLACK_TITLE: 'Job ${{github.job}}: ${{ github.repository }}'
-          SLACK_MESSAGE: 'Success'
+          SLACK_MESSAGE: 'Main deploy Success'
           SLACK_COLOR: ${{ job.status }}
           SLACK_USERNAME: Github Actions
 
@@ -136,7 +138,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{secrets.SLACK_WEBHOOK_URL}}
           SLACK_TITLE: 'Job ${{github.job}}: ${{ github.repository }}'
-          SLACK_MESSAGE: 'Failure'
+          SLACK_MESSAGE: 'Main deploy Failure'
           SLACK_COLOR: ${{ job.status }}
           SLACK_USERNAME: Github Actions
 
@@ -180,7 +182,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{secrets.SLACK_WEBHOOK_URL}}
           SLACK_TITLE: 'Job ${{github.job}}: ${{ github.repository }}'
-          SLACK_MESSAGE: 'Success'
+          SLACK_MESSAGE: 'Release deploy Success'
           SLACK_COLOR: ${{ job.status }}
           SLACK_USERNAME: Github Actions
 
@@ -190,6 +192,6 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{secrets.SLACK_WEBHOOK_URL}}
           SLACK_TITLE: 'Job ${{github.job}}: ${{ github.repository }}'
-          SLACK_MESSAGE: 'Failure'
+          SLACK_MESSAGE: 'Release deploy Failure'
           SLACK_COLOR: ${{ job.status }}
           SLACK_USERNAME: Github Actions
