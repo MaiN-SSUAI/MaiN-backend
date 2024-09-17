@@ -1,5 +1,9 @@
 package com.example.MaiN.service;
 
+import com.example.MaiN.dto.DayReservationResponse;
+import com.example.MaiN.dto.MonthlyReservationResponse;
+import com.example.MaiN.dto.SingleReservationDto;
+import com.example.MaiN.dto.WeeklyReservationResponse;
 import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.security.GoogleCredentialProvider;
@@ -12,7 +16,6 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -53,15 +56,10 @@ public class CalendarService {
         return Integer.toString(result);
     }
 
-    // reservation 객체를 map으로 변환
-    private static Map<String, Object> toMap(Event event, LocalDate date, int reservId, String purpose, List<String> studentNoList) {
-        Map<String, Object> map = new LinkedHashMap<>();
+    private static SingleReservationDto toDto(Event event, LocalDate date, int reservId, String purpose, List<String> studentNoList){
 
-        map.put("reservId", reservId);
-        map.put("studentNo", studentNoList);
-        map.put("purpose", purpose);
-        map.put("start", event.getStart().getDateTime().toString());
-        map.put("end", event.getEnd().getDateTime().toString());
+        String start_pixel = "";
+        String end_pixel = "";
 
         // DateTime 객체에서 LocalDate로 변환 (2024-09-03T10:15:00+09:00 -> 2024-09-03)
         // 이벤트 시작 날짜 -> YYYY-MM-DD
@@ -75,23 +73,32 @@ public class CalendarService {
 
         // 입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
         if (date.isEqual(eventStartDate)) {
-            map.put("start_pixel", calPixel(event.getStart().getDateTime()));
+            start_pixel = calPixel(event.getStart().getDateTime());
         }
         // 입력한 날짜보다 시작 날짜가 빠른 경우 -> start_pixel = 0
         else if (date.isAfter(eventStartDate)) {
-            map.put("start_pixel", "0");
+            start_pixel = "0";
         }
         // 입력한 날짜와 이벤트 끝 날짜가 같은 경우 -> end pixel 그대로 계산
         if (date.isEqual(eventEndDate)) {
-            map.put("end_pixel", calPixel(event.getEnd().getDateTime()));
+            end_pixel = calPixel(event.getEnd().getDateTime());
         }
         // 입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
         else if (date.isBefore(eventEndDate)) {
-            map.put("end_pixel", "864");
+            end_pixel = "0";
         }
 
-        return map;
+        return SingleReservationDto.builder()
+                .reservationId(reservId)
+                .studentNo(studentNoList)
+                .purpose(purpose)
+                .start(event.getStart().getDateTime().toString())
+                .end(event.getEnd().getDateTime().toString())
+                .start_pixel(start_pixel)
+                .end_pixel(end_pixel)
+                .build();
     }
+
 
     // 캘린더에 예약 등록
     public String addReservation(List studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception {
@@ -150,9 +157,10 @@ public class CalendarService {
     }
 
     // 세미나실 2 필터링, 대학원생 예약과 학부생 예약 처리, map으로 변환하는 예약 필터링 및 처리 메서드
-    private static List<Map<String, Object>> filterReservation(List<Event> eventsList, LocalDate date) {
+    private static DayReservationResponse filterReservation(List<Event> eventsList, LocalDate date) {
 
-        List<Map<String, Object>> eventMaps = new ArrayList<>();
+//        List<Map<String, Object>> eventMaps = new ArrayList<>();
+        List<SingleReservationDto> reservationDtos = new ArrayList<>();
 
         for (Event event : eventsList) {
             String[] parts = event.getSummary().split("/");
@@ -170,17 +178,16 @@ public class CalendarService {
                 //학번 하나씩 리스트로 저장
                 List<String> studentNoList = Arrays.asList(parts[1].replace("[", "").replace("]", "").trim().split(", "));
 
-                // 이벤트를 map으로 변환
-                Map<String, Object> eventMap = toMap(event, date, reservId, purpose, studentNoList);
-                eventMaps.add(eventMap);
-
+                reservationDtos.add(toDto(event,date,reservId,purpose,studentNoList));
             }
         }
-        return eventMaps;
+        return DayReservationResponse.builder()
+                .reservations(reservationDtos)
+                .build();
     }
 
     // 캘린더에서 하루 치 예약 가져오기
-    public List<Map<String, Object>> getDayCalendarReservations(LocalDate date) throws Exception {
+    public DayReservationResponse getDayCalendarReservations(LocalDate date) throws Exception {
 
         Calendar calendar = getCalendarService();
 
@@ -199,31 +206,15 @@ public class CalendarService {
         // 구글캘린더에서 가져온 이벤트들
         List<Event> eventsList = events.getItems();
 
-        // 가져온 이벤트들을 처리해서 리스트에 저장
-        List<Map<String, Object>> dayEventList = new ArrayList<>();
-
-        List<Map<String, Object>> eventMaps = filterReservation(eventsList, date);
-
-        // 모든 이벤트를 dayEventList에 추가
-        dayEventList.addAll(eventMaps);
-
-        return dayEventList;
+        return filterReservation(eventsList,date);
     }
 
-    public Map<String, List<Map<String, Object>>> getWeekCalendarReservations(LocalDate date) throws Exception {
+    public WeeklyReservationResponse getWeeklyCalendarReservations(LocalDate date) throws Exception {
         Calendar calendar = getCalendarService();
 
-        // 요일별 이벤트 리스트를 담는 Map 객체 생성
-        Map<String, List<Map<String, Object>>> weeklyEvents = new LinkedHashMap<>();
-
-        for (DayOfWeek day : DayOfWeek.values()) {
-            // 요일의 짧은 이름 가져오기 ex.)MON, TUE ...
-            weeklyEvents.put(day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3), new ArrayList<>());
-        }
-
-        // 스레드풀 생성
+        //스레드풀 생성
         ExecutorService executor = Executors.newFixedThreadPool(7);
-        List<Future<Map<String, List<Map<String, Object>>>>> futures = new ArrayList<>();
+        List<Future<WeeklyReservationResponse>> futures = new ArrayList<>();
 
         // 예약 날짜에 해당하는 주의 월요일(startOfWeek), 일요일(endOfWeek) 계산
         LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -234,7 +225,7 @@ public class CalendarService {
             LocalDate finalCurrentDate = currentDate;
 
             // 비동기 작업 제출
-            Future<Map<String, List<Map<String, Object>>>> future = executor.submit(() -> {
+            Future<WeeklyReservationResponse> future = executor.submit(() -> {
 
                 // 해당 날짜의 시작 시간과 끝 시간
                 DateTime startOfDay = new DateTime(finalCurrentDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
@@ -251,37 +242,82 @@ public class CalendarService {
                 // 구글캘린더에서 가져온 이벤트들
                 List<Event> eventsList = events.getItems();
 
-                // 가져온 이벤트들을 처리해서 리스트에 저장
-                List<Map<String, Object>> dayEventList = new ArrayList<>();
+                // 모든 이벤트를 dayRerervationResponse DTO 에 추가
+                DayReservationResponse dayReservationResponse = filterReservation(eventsList,finalCurrentDate);
 
-                // 이벤트들을 리스트로 변환
-                List<Map<String, Object>> eventMaps = filterReservation(eventsList, finalCurrentDate);
-
-                // 모든 이벤트를 dayEventList에 추가
-                dayEventList.addAll(eventMaps);
-
-                // 비동기 결과 저장
                 String dayOfWeek = finalCurrentDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3);
-                Map<String, List<Map<String, Object>>> dayEvents = new LinkedHashMap<>();
 
-                // 요일을 키로, 예약 목록 저장
-                dayEvents.put(dayOfWeek, dayEventList);
+                WeeklyReservationResponse response = new WeeklyReservationResponse();
+                response.addReservationList(dayOfWeek, dayReservationResponse);
 
-                return dayEvents;
+                return response;
             });
             futures.add(future);
         }
 
+        WeeklyReservationResponse weeklyReservationResponse = new WeeklyReservationResponse();
+
         // 비동기 결과 취합
-        for (Future<Map<String, List<Map<String, Object>>>> future : futures) {
-            Map<String, List<Map<String, Object>>> dayEvents = future.get();
-            for (Map.Entry<String, List<Map<String, Object>>> entry : dayEvents.entrySet()) {
-                weeklyEvents.get(entry.getKey()).addAll(entry.getValue());
+        for (Future<WeeklyReservationResponse> future : futures) {
+            WeeklyReservationResponse dayResponse = future.get();
+            if (dayResponse != null) {
+                // 각 요일의 예약 정보를 주 예약 응답에 추가
+                weeklyReservationResponse.addReservationList("Mon", dayResponse.getMon());
+                weeklyReservationResponse.addReservationList("Tue", dayResponse.getTue());
+                weeklyReservationResponse.addReservationList("Wed", dayResponse.getWed());
+                weeklyReservationResponse.addReservationList("Thu", dayResponse.getThu());
+                weeklyReservationResponse.addReservationList("Fri", dayResponse.getFri());
+                weeklyReservationResponse.addReservationList("Sat", dayResponse.getSat());
+                weeklyReservationResponse.addReservationList("Sun", dayResponse.getSun());
             }
         }
 
         // 스레드풀 종료
         executor.shutdown();
-        return weeklyEvents;
+        return weeklyReservationResponse;
     }
+
+
+    public MonthlyReservationResponse getMonthCalendarReservations(LocalDate date) throws Exception {
+
+        ExecutorService executor = Executors.newFixedThreadPool(7);
+        List<Future<WeeklyReservationResponse>> futures = new ArrayList<>();
+
+        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+
+        for(int week = 0; week < 4; week++){
+            LocalDate currentDate = startOfWeek.plusWeeks(week);
+
+            Future<WeeklyReservationResponse> future = executor.submit(()-> getWeeklyCalendarReservations(currentDate));
+            futures.add(future);
+        }
+
+        MonthlyReservationResponse monthlyReservationResponse = new MonthlyReservationResponse();
+
+        for(int week=0; week < futures.size(); week++){
+            WeeklyReservationResponse weeklyReservationResponse = futures.get(week).get();
+            if (weeklyReservationResponse != null) {
+                switch (week){
+                    case 0:
+                        monthlyReservationResponse.setWeek1(weeklyReservationResponse);
+                        break;
+                    case 1:
+                        monthlyReservationResponse.setWeek2(weeklyReservationResponse);
+                        break;
+                    case 2:
+                        monthlyReservationResponse.setWeek3(weeklyReservationResponse);
+                        break;
+                    case 3:
+                        monthlyReservationResponse.setWeek4(weeklyReservationResponse);
+                        break;
+
+                }
+            }
+        }
+        executor.shutdown();
+        return monthlyReservationResponse;
+    }
+
+
+
 }
