@@ -37,7 +37,14 @@ public class ReservationController {
     @GetMapping("/events/week")
     @Operation(summary = "세미나실 예약 조회 (WEEK)")
     public ResponseEntity<?> getWeekEvents(@RequestParam("date")LocalDate date) throws Exception {
-        return ResponseEntity.ok(calendarService.getWeekCalendarReservations(date));
+//        return ResponseEntity.ok(calendarService.getWeekCalendarReservations(date));
+        return ResponseEntity.ok(calendarService.getWeeklyCalendarReservations(date));
+    }
+
+    @GetMapping("/events/month")
+    @Operation(summary = "세미나실 예약 조회 (MONTH) ")
+    public ResponseEntity<?> getMonthEvents(@RequestParam("date")LocalDate date) throws Exception {
+        return ResponseEntity.ok(calendarService.getMonthCalendarReservations(date));
     }
 
     @GetMapping("/check/user")
