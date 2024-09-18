@@ -3,6 +3,8 @@ package com.example.MaiN.service;
 import com.example.MaiN.Exception.CustomErrorCode;
 import com.example.MaiN.Exception.CustomException;
 //import com.example.MaiN.entity.Event;
+import com.example.MaiN.dto.DayReservationResponse;
+import com.example.MaiN.dto.SingleReservationDto;
 import com.example.MaiN.entity.Reserv;
 import com.example.MaiN.entity.ReservAssign;
 import com.example.MaiN.repository.ReservAssignRepository;
@@ -84,12 +86,13 @@ public class ReservationValidService {
     public void checkReservationOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate) throws Exception {
 
         //구글 캘린더에 저장되어 있는 예약 불러오기
-        List<Map<String, Object>> response = calendarService.getDayCalendarReservations(startDate);
+//        List<Map<String, Object>> response = calendarService.getDayCalendarReservations(startDate);
+        DayReservationResponse response = calendarService.getDayCalendarReservations(startDate);
 
-        if(!response.isEmpty()){
-            for(Map<String, Object> reservation : response){
-                DateTime existingStart = new DateTime((String) reservation.get("start"));
-                DateTime existingEnd = new DateTime((String) reservation.get("end"));
+        if(response != null && response.getReservations() != null){
+            for(SingleReservationDto reservation : response.getReservations()){
+                DateTime existingStart = new DateTime(reservation.getStart());
+                DateTime existingEnd = new DateTime(reservation.getEnd());
                 if(startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()){
                     throw new CustomException("이미 예약된 일정이 있습니다.", CustomErrorCode.EVENT_OVERLAPS);
                 }
