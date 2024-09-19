@@ -11,37 +11,35 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name="ssucatch_noti")
-public class SsuCatchNoti {
+@Table(name="funsys_noti")
+public class FunsysNotice {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column(name = "title", unique = true, nullable = false)
     private String title;
 
     @Column(length = 15, nullable = false)
     private String link;
 
-    @Column(nullable = false)
-    private String progress;
+    @Column(name = "start_date",nullable = false)
+    private LocalDate startDate;
 
-    @Column(nullable = false)
-    private String category;
+    @Column(name = "end_date", nullable = false)
+    private LocalDate endDate;
 
-    @Column(nullable = false)
-    private LocalDate date;
-
-    @OneToMany(mappedBy = "ssuCatchNoti", fetch = FetchType.EAGER)
-    private Set<SsuCatchNotiFavor> favoritesSet;
+    @OneToMany(mappedBy = "noticeId", fetch = FetchType.EAGER)
+    private Set<NoticeFavorite> favoritesSet;
 
     @Builder
-    public SsuCatchNoti(int id, String title, String link, String progress, String category, LocalDate date) {
+    public FunsysNotice(int id, String title, String link, LocalDate startDate, LocalDate endDate) {
         this.id = Math.toIntExact(id);
         this.title = title;
         this.link = link;
-        this.progress = progress;
-        this.category = category;
-        this.date = date;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
     public boolean isFavorites() {
         return favoritesSet != null && !favoritesSet.isEmpty();
