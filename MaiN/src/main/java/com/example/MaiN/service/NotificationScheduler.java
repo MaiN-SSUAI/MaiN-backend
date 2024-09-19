@@ -4,6 +4,7 @@ package com.example.MaiN.service;
 import com.example.MaiN.dto.PushMessage;
 import com.example.MaiN.entity.Reserv;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class NotificationScheduler {
     }
 
     @Scheduled(cron = "0 */1 * * * ?") // 1분마다 체크하는 스케줄러
+    @Transactional
     public void pushReservationAlarm() {
         LocalDateTime now = LocalDateTime.now();
         log.info("스케줄러 실행 시간: {}", now);
