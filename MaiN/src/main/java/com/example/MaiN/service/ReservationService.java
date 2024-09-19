@@ -12,9 +12,10 @@ import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.format.DateTimeFormatter;
 
 import java.io.IOException;
 import java.time.*;
@@ -22,6 +23,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReservationService {
     private final ReservRepository reservRepository;
     private final UserRepository userRepository;
@@ -29,6 +31,7 @@ public class ReservationService {
     private final ReservationValidService reservationValidService;
     private final CalendarService calendarService;
     private final FirebaseCloudMessageService firebaseCloudMessageService;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     //예약 제한 사항 (사용자 사용시간 관련) 체크
     public void checkUser(String studentId, LocalDate date) {
@@ -193,15 +196,16 @@ public class ReservationService {
         return user.getFcmToken();
     }
 
+    // 예약 시작 30분 전 예약을 찾는 메서드
     public List<Reserv> getReservationsStartingIn30Minutes() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime in30Minutes = now.plusMinutes(30);
+        OffsetDateTime now = OffsetDateTime.now(); // OffsetDateTime 사용
+        OffsetDateTime in30Minutes = now.plusMinutes(30);
         return reservRepository.findReservationsBetween(now, in30Minutes);
     }
 
     public List<Reserv> getReservationEndingIn5Minutes() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime in5Minutes = now.plusMinutes(5);
+        OffsetDateTime now = OffsetDateTime.now(); // OffsetDateTime 사용
+        OffsetDateTime in5Minutes = now.plusMinutes(5);
         return reservRepository.findReservationsEndingIn5Minutes(now, in5Minutes);
     }
 }

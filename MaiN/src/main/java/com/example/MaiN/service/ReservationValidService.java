@@ -71,7 +71,7 @@ public class ReservationValidService {
         long countThisWeek = reservAssigns.stream()
                                 .map(ReservAssign::getReservId)
                                 .map(reservRepository::findByReservId)
-                                .filter(r -> isDateInRange(r.getStartTime(), startOfWeek, endOfWeek))
+                                .filter(r -> isDateInRange(String.valueOf(r.getStartTime()), startOfWeek, endOfWeek))
                                 .count();
 
         System.out.println("Total reservations for student ID " + userId + " is " + countThisWeek);
@@ -114,7 +114,7 @@ public class ReservationValidService {
     public void checkDeleteTime(int reservId) throws CustomException {
         LocalDateTime currentDateTime = LocalDateTime.now();
         Reserv eventForCheckTime = reservRepository.findByReservId(reservId);
-        String eventTime = eventForCheckTime.getStartTime(); //저장된 이벤트 시간 string
+        String eventTime = String.valueOf(eventForCheckTime.getStartTime()); //저장된 이벤트 시간 string
         ZonedDateTime zonedDateTime = ZonedDateTime.parse(eventTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         LocalDateTime eventDateTime = zonedDateTime.toLocalDateTime(); //저장된 이벤트 시간 localdatetime
 
