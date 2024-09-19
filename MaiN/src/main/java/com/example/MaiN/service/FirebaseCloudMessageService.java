@@ -9,10 +9,13 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.net.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 import okhttp3.*;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 @Component
@@ -21,6 +24,10 @@ public class FirebaseCloudMessageService {
 
     private final String API_URL = "https://fcm.googleapis.com/v1/projects/main2-653f5/messages:send";
     private final ObjectMapper objectMapper;
+
+    // 환경 변수에서 firebase_key를 가져오기 위한 설정
+    @Value("${FIREBASE_KEY}")
+    private String firebaseKeyEncoded;
 
     public void sendMessageTo(String targetToken, PushMessage pushMessage, Object... args) throws IOException {
         String message = makeMessage(targetToken, pushMessage.formatMessage(args));
@@ -53,9 +60,12 @@ public class FirebaseCloudMessageService {
     }
 
     private String getAccessToken() throws IOException {
-        String firebaseConfigPath = "main2-653f5-firebase-adminsdk-awwrr-6b255dc191.json";
+        // 환경 변수에서 Firebase Key를 Base64로 디코딩하여 사용
+        byte[] decodedKey = Base64.getDecoder().decode(firebaseKeyEncoded);
+        ByteArrayInputStream serviceAccount = new ByteArrayInputStream(decodedKey);
+
         GoogleCredentials googleCredentials = GoogleCredentials
-                .fromStream(new ClassPathResource(firebaseConfigPath).getInputStream())
+                .fromStream(serviceAccount)
                 .createScoped(List.of("https://www.googleapis.com/auth/cloud-platform"));
 
         AccessToken accessToken = googleCredentials.refreshAccessToken();
