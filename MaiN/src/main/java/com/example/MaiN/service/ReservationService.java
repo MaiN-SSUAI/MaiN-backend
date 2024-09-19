@@ -179,12 +179,21 @@ public class ReservationService {
         return userRepository.save(user).getId();
     }
 
-    // 예약 30분 전 알림 전송 메서드
-    public void sendNotificationToUsers(List<String> studentIds, PushMessage pushMessage, Object... args) throws IOException {
-        for (String studentId : studentIds) {
-            String token = getUserFcmToken(studentId);
-            if (token != null) {
-                firebaseCloudMessageService.sendMessageTo(token, pushMessage, args);
+    public void sendNotificationToUsers(List<String> studentIds, PushMessage pushMessage, String... args) throws IOException {
+        for (String studentIdStr : studentIds) {
+            // studentIdStr이 이미 문자열이므로 그대로 사용
+            Optional<String> fcmTokenOpt = userRepository.findByStudentNo(studentIdStr) // studentIdStr을 그대로 사용
+                    .map(User::getFcmToken)
+                    .filter(token -> token != null && !token.isEmpty()); // FcmToken이 비어있지 않은지 체크
+
+            if (fcmTokenOpt.isPresent()) {
+                String fcmToken = fcmTokenOpt.get();
+                log.info("Sending notification to studentId: {}, FCM token: {}", studentIdStr, fcmToken);
+
+                // firebaseCloudMessageService를 통해 sendMessageTo 호출
+                firebaseCloudMessageService.sendMessageTo(fcmToken, pushMessage, args);
+            } else {
+                log.warn("No FCM token found for studentId: {}. Skipping notification.", studentIdStr);
             }
         }
     }
