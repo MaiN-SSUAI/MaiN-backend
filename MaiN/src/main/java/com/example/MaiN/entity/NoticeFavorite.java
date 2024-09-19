@@ -21,7 +21,7 @@ public class NoticeFavorite {
     private User user;
 
     @Column(name = "notice_id")
-    private Integer noticeId;
+    private int noticeId;
 
     @Column(name = "notice_type", nullable = false)
     private String noticeType;

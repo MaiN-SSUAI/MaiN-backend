@@ -33,8 +33,8 @@ public class SsucatchNotice {
     @Column(nullable = false)
     private LocalDate date;
 
-    @OneToMany(mappedBy = "ssuCatchNoti", fetch = FetchType.EAGER)
-    private Set<SsuCatchNotiFavor> favoritesSet;
+    @OneToMany(mappedBy = "noticeId", fetch = FetchType.EAGER)
+    private Set<NoticeFavorite> favoritesSet;
 
     @Builder
     public SsucatchNotice(int id, String title, String link, String progress, String category, LocalDate date) {

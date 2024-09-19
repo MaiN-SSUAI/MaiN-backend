@@ -1,9 +1,6 @@
 package com.example.MaiN.controller;
 
-import com.example.MaiN.dto.AiNoticeDto;
 import com.example.MaiN.dto.FavoriteRequestDto;
-import com.example.MaiN.dto.FunsysNoticeDto;
-import com.example.MaiN.dto.SsucatchNoticeDto;
 import com.example.MaiN.service.NoticeService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RestController

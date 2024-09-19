@@ -26,8 +26,8 @@ public class AiNotice {
     @Column(nullable = false)
     private LocalDate date;
 
-    @OneToMany(mappedBy = "aiNoti", fetch = FetchType.EAGER)
-    private Set<AiNotiFavor> favoritesSet;
+    @OneToMany(mappedBy = "noticeId", fetch = FetchType.EAGER)
+    private Set<NoticeFavorite> favoritesSet;
 
     @Builder
     public AiNotice(int id, String title, String link, LocalDate date) {

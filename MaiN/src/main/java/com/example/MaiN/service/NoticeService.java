@@ -1,25 +1,15 @@
 package com.example.MaiN.service;
 
-import com.example.MaiN.dto.*;
 import com.example.MaiN.entity.*;
 import com.example.MaiN.repository.*;
 
 import lombok.RequiredArgsConstructor;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
-
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 @Service

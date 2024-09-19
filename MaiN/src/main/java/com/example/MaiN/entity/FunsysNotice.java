@@ -30,8 +30,8 @@ public class FunsysNotice {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @OneToMany(mappedBy = "funsysNoti", fetch = FetchType.EAGER)
-    private Set<FunsysNotiFavor> favoritesSet;
+    @OneToMany(mappedBy = "noticeId", fetch = FetchType.EAGER)
+    private Set<NoticeFavorite> favoritesSet;
 
     @Builder
     public FunsysNotice(int id, String title, String link, LocalDate startDate, LocalDate endDate) {
