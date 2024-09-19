@@ -72,7 +72,7 @@ jobs:
         mkdir -p $DIR
         echo $CREDENTIALS | base64 --decode > $DIR/credentials.json
         echo $RESERVE_CALENDAR | base64 --decode > $DIR/reservecalendar-410115-141fd088c697.json
-        echo $FIREBASE_KEY | base64 --decode > $DIR/main-c987b-firebase-adminsdk-ra8t9-b46c2708c7.json
+        echo $FIREBASE_KEY | base64 --decode > $DIR/main2-653f5-firebase-adminsdk-awwrr-6b255dc191.json
         ls -al $DIR 
       working-directory: ${{ env.working-directory }}
       
