@@ -21,7 +21,7 @@ public class EventDto {
     private int reservationId;
 
     // DTO객체를 Entity객체로 변환하는 메서드
-    public Reserv toEntity(int userId){
+    /*public Reserv toEntity(int userId){
         return new Reserv(
                 this.id,
                 userId,
@@ -30,7 +30,7 @@ public class EventDto {
                 this.endDateTimeStr,
                 this.eventId
         );
-    }
+    }*/
 
     public void setEventId(String eventId) {
         this.eventId = eventId;
