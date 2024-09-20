@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
@@ -16,8 +17,8 @@ public class EventDto {
     private int userId;
     private List<String> studentIds;
     private String purpose;
-    private String startDateTimeStr;
-    private String endDateTimeStr;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
     private int reservationId;
 
     // DTO객체를 Entity객체로 변환하는 메서드
@@ -26,8 +27,8 @@ public class EventDto {
                 this.id,
                 userId,
                 this.purpose,
-                this.startDateTimeStr,
-                this.endDateTimeStr,
+                this.startDateTime,
+                this.endDateTime,
                 this.eventId
         );
     }*/
