@@ -72,10 +72,10 @@ public class ReservationValidService {
         List<ReservAssign> reservAssigns = reservAssignRepository.findByUserId(userId);
 
         long countThisWeek = reservAssigns.stream()
-                                .map(ReservAssign::getReservId)
-                                .map(reservRepository::findByReservId)
-                                .filter(r -> isDateInRange(String.valueOf(r.getStartTime()), startOfWeek, endOfWeek))
-                                .count();
+                .map(ReservAssign::getReservId)
+                .map(reservRepository::findByReservId)
+                .filter(r -> isDateInRange(r.getStartTime().toLocalDateTime(), startOfWeek, endOfWeek))
+                .count();
 
         System.out.println("Total reservations for student ID " + userId + " is " + countThisWeek);
         String text = studentId + "님이 이번주 예약 횟수를 초과하였습니다.";
@@ -89,7 +89,6 @@ public class ReservationValidService {
     public void checkReservationOverlaps(LocalDateTime startDateTime, LocalDateTime endDateTime, LocalDate startDate) throws Exception {
 
         //구글 캘린더에 저장되어 있는 예약 불러오기
-//        List<Map<String, Object>> response = calendarService.getDayCalendarReservations(startDate);
         DayReservationResponse response = calendarService.getDayCalendarReservations(startDate);
 
         if(response != null && response.getReservations() != null){
@@ -124,8 +123,7 @@ public class ReservationValidService {
 //        ZonedDateTime zonedDateTime = ZonedDateTime.parse(eventTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 //        LocalDateTime eventDateTime = zonedDateTime.toLocalDateTime(); //저장된 이벤트 시간 localdatetime
 
-//        System.out.println("eventDateTime : " + eventDateTime);
-//        System.out.println("currentDateTime : " + currentDateTime);
+        OffsetDateTime eventDateTimeAfter = eventTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
 
         LocalDateTime eventDateTimeAfter = eventTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
 
