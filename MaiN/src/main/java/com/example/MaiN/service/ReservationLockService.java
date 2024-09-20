@@ -12,7 +12,7 @@ public class ReservationLockService {
     private static final ConcurrentHashMap<String, Object> locks = new ConcurrentHashMap<>();
     private static final String GLOBAL_RESERVATION_LOCK = "GLOBAL_RESERVATION_LOCK";
 
-    public static <T> T executeWithLock(OffsetDateTime startTime, OffsetDateTime endTime, LockCallback<T> callback) throws Exception {
+    public static <T> T executeWithLock(LocalDateTime startTime, LocalDateTime endTime, LockCallback<T> callback) throws Exception {
         String lockKey = startTime + ":" + endTime;
         Object lock = locks.computeIfAbsent(GLOBAL_RESERVATION_LOCK, k -> new Object());
 

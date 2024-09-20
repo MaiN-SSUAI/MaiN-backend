@@ -12,6 +12,7 @@ import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.format.DateTimeFormatter;
@@ -204,14 +205,14 @@ public class ReservationService {
 
     // 예약 시작 30분 전 예약을 찾는 메서드
     public List<Reserv> getReservationsStartingIn30Minutes() {
-        OffsetDateTime now = OffsetDateTime.now(); // OffsetDateTime 사용
-        OffsetDateTime in30Minutes = now.plusMinutes(30);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime in30Minutes = now.plusMinutes(30);
         return reservRepository.findReservationsBetween(now, in30Minutes);
     }
 
     public List<Reserv> getReservationEndingIn5Minutes() {
-        OffsetDateTime now = OffsetDateTime.now(); // OffsetDateTime 사용
-        OffsetDateTime in5Minutes = now.plusMinutes(5);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime in5Minutes = now.plusMinutes(5);
         return reservRepository.findReservationsEndingIn5Minutes(now, in5Minutes);
     }
 }

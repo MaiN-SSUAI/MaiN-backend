@@ -22,8 +22,8 @@ public interface ReservRepository extends CrudRepository<Reserv, Integer> {
 
 
     @Query("SELECT r FROM Reserv r WHERE r.startTime BETWEEN :now AND :in30Minutes")
-    List<Reserv> findReservationsBetween(@Param("now") OffsetDateTime now, @Param("in30Minutes") OffsetDateTime in30Minutes);
+    List<Reserv> findReservationsBetween(@Param("now") LocalDateTime now, @Param("in30Minutes") LocalDateTime in30Minutes);
 
     @Query("SELECT r FROM Reserv r WHERE r.endTime BETWEEN :now AND :in5Minutes")
-    List<Reserv> findReservationsEndingIn5Minutes(@Param("now") OffsetDateTime now, @Param("in5Minutes") OffsetDateTime in5Minutes);
+    List<Reserv> findReservationsEndingIn5Minutes(@Param("now") LocalDateTime now, @Param("in5Minutes") LocalDateTime in5Minutes);
 }

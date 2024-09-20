@@ -74,7 +74,7 @@ public class ReservationValidService {
         long countThisWeek = reservAssigns.stream()
                 .map(ReservAssign::getReservId)
                 .map(reservRepository::findByReservId)
-                .filter(r -> isDateInRange(r.getStartTime().toLocalDateTime(), startOfWeek, endOfWeek))
+                .filter(r -> isDateInRange(r.getStartTime(), startOfWeek, endOfWeek))
                 .count();
 
         System.out.println("Total reservations for student ID " + userId + " is " + countThisWeek);
@@ -120,14 +120,9 @@ public class ReservationValidService {
         LocalDateTime currentDateTime = LocalDateTime.now();
         Reserv eventForCheckTime = reservRepository.findByReservId(reservId);
         LocalDateTime eventTime = eventForCheckTime.getStartTime(); //저장된 이벤트 시간
-//        ZonedDateTime zonedDateTime = ZonedDateTime.parse(eventTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-//        LocalDateTime eventDateTime = zonedDateTime.toLocalDateTime(); //저장된 이벤트 시간 localdatetime
-
-        OffsetDateTime eventDateTimeAfter = eventTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
 
         LocalDateTime eventDateTimeAfter = eventTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
 
-//        System.out.println("eventDateTimeAfter : " + eventDateTimeAfter);
 
         if (currentDateTime.isAfter(eventDateTimeAfter)) { //현재 시각이 (저장된 이벤트 시작 시간 + 30분)의 이후라면 예약 불가
             throw new CustomException("이미 지난 예약은 삭제할 수 없습니다.", CustomErrorCode.UNABLE_TO_DELETE);
