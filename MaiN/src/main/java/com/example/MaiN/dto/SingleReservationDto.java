@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -13,8 +14,8 @@ public class SingleReservationDto {
     private int reservationId;
     private List<String> studentNo;
     private String purpose;
-    private String start;
-    private String end;
+    private LocalDateTime start;
+    private LocalDateTime end;
     private String start_pixel;
     private String end_pixel;
 }

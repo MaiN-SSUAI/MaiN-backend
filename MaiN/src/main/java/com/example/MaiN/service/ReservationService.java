@@ -12,7 +12,6 @@ import com.example.MaiN.repository.ReservAssignRepository;
 import com.example.MaiN.repository.ReservRepository;
 import com.example.MaiN.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.format.DateTimeFormatter;
@@ -49,11 +48,11 @@ public class ReservationService {
     @Transactional
     public String addReservation(EventDto eventDto) throws Exception {
         // 예약 제한사항 체크 (2시간 이상, 30분 미만 금지, 2인 이상, 겹치는지 확인)
-        reservationValidService.checkReservation(eventDto.getStartDateTimeStr(),eventDto.getEndDateTimeStr(),eventDto.getStudentIds());
+        reservationValidService.checkReservation(eventDto.getStartDateTime(),eventDto.getEndDateTime(),eventDto.getStudentIds());
 
         List<String> studentIds = eventDto.getStudentIds();
 
-        return ReservationLockService.executeWithLock(eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(), () -> {
+        return ReservationLockService.executeWithLock(eventDto.getStartDateTime(), eventDto.getEndDateTime(), () -> {
             Reserv savedReserv = null;
 
             for(int i=0; i<studentIds.size(); i++) {
@@ -67,7 +66,7 @@ public class ReservationService {
                 //주최자인 경우
                 if (i == 0) {
                     //구글 캘린더에 올리는 메소드
-                    String eventId = calendarService.addReservation(studentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+                    String eventId = calendarService.addReservation(studentIds, eventDto.getStartDateTime(), eventDto.getEndDateTime());
                     eventDto.setEventId(eventId);
 
                     //Reserv 테이블에 데이터 저장
@@ -115,7 +114,7 @@ public class ReservationService {
         }
 
         // 예약 유효성 검사
-        reservationValidService.checkReservation(eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr(), eventDto.getStudentIds());
+        reservationValidService.checkReservation(eventDto.getStartDateTime(), eventDto.getEndDateTime(), eventDto.getStudentIds());
 
         // 사용 구성원 변경
         List<String> newStudentIds = eventDto.getStudentIds(); // 입력으로 받은 학번 리스트
@@ -162,7 +161,7 @@ public class ReservationService {
         }
 
         // 구글 캘린더 수정 메소드 호출
-        calendarService.updateReservation(reserv.getEventId(), newStudentIds, eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr());
+        calendarService.updateReservation(reserv.getEventId(), newStudentIds, eventDto.getStartDateTime(), eventDto.getEndDateTime());
 
         return "예약 수정 성공";
     }

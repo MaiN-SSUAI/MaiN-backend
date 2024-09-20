@@ -9,13 +9,11 @@ import com.google.api.client.util.DateTime;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 
 @RestController
@@ -78,6 +76,6 @@ public class ReservationController {
     @PatchMapping("/test/patch/{reservId}")
     public ResponseEntity<DateTime> testUpdateReservation(@PathVariable("reservId") int reservId, @RequestBody EventDto eventDto) throws Exception {
         Reserv reserv = reservRepository.findByReservId(reservId);
-        return ResponseEntity.ok(calendarService.updateReservation(reserv.getEventId(), eventDto.getStudentIds(), eventDto.getStartDateTimeStr(), eventDto.getEndDateTimeStr()));
+        return ResponseEntity.ok(calendarService.updateReservation(reserv.getEventId(), eventDto.getStudentIds(), eventDto.getStartDateTime(), eventDto.getEndDateTime()));
     }
 }
