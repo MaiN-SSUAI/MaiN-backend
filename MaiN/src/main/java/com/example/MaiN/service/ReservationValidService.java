@@ -32,10 +32,12 @@ public class ReservationValidService {
     private final CalendarService calendarService;
 
     //예약 제한 사항 (예약 시간 관련) 체크
-    public void checkReservation(String startDateTimeStr, String endDateTimeStr, List<String> studentIds) throws Exception {
-        DateTime startDateTime = new DateTime(startDateTimeStr);
-        DateTime endDateTime = new DateTime(endDateTimeStr);
-        LocalDate startDate = LocalDate.parse(startDateTimeStr.split("T")[0], DateTimeFormatter.ISO_DATE);
+    public void checkReservation(LocalDateTime startDateTime, LocalDateTime endDateTime, List<String> studentIds) throws Exception {
+//        DateTime startDateTime = new DateTime(startDateTimeStr);
+//        DateTime endDateTime = new DateTime(endDateTimeStr);
+
+        LocalDate startDate = startDateTime.toLocalDate();
+//        LocalDate startDate = LocalDate.parse(startDateTime.split("T")[0], DateTimeFormatter.ISO_DATE);
         // 에약 제한 사항들
         if (studentIds.size() < 2){
             throw new CustomException("최소 2인 이상 예약해야 합니다.", CustomErrorCode.RESERVATION_ONE_PERSON);
@@ -45,8 +47,9 @@ public class ReservationValidService {
     }
 
     //2시간 이상, 30분 미만 확인
-    public void checkDuration(DateTime startDateTime, DateTime endDateTime) throws CustomException {
-        long durationInMillis = endDateTime.getValue() - startDateTime.getValue();
+    public void checkDuration(LocalDateTime startDateTime, LocalDateTime endDateTime) throws CustomException {
+        long durationInMillis = Duration.between(startDateTime, endDateTime).toMillis();
+
         long twoHoursInMillis = 2 * 60 * 60 * 1000; // 2시간을 밀리초로 변환
         long thirtyMinutesInMillis = 30 * 60 * 1000; // 30분을 밀리초로 변환
 
@@ -69,10 +72,10 @@ public class ReservationValidService {
         List<ReservAssign> reservAssigns = reservAssignRepository.findByUserId(userId);
 
         long countThisWeek = reservAssigns.stream()
-                                .map(ReservAssign::getReservId)
-                                .map(reservRepository::findByReservId)
-                                .filter(r -> isDateInRange(String.valueOf(r.getStartTime()), startOfWeek, endOfWeek))
-                                .count();
+                .map(ReservAssign::getReservId)
+                .map(reservRepository::findByReservId)
+                .filter(r -> isDateInRange(r.getStartTime(), startOfWeek, endOfWeek))
+                .count();
 
         System.out.println("Total reservations for student ID " + userId + " is " + countThisWeek);
         String text = studentId + "님이 이번주 예약 횟수를 초과하였습니다.";
@@ -83,17 +86,19 @@ public class ReservationValidService {
     }
 
     //겹치는 예약 있는지 확인
-    public void checkReservationOverlaps(DateTime startDateTime, DateTime endDateTime, LocalDate startDate) throws Exception {
+    public void checkReservationOverlaps(LocalDateTime startDateTime, LocalDateTime endDateTime, LocalDate startDate) throws Exception {
 
         //구글 캘린더에 저장되어 있는 예약 불러오기
-//        List<Map<String, Object>> response = calendarService.getDayCalendarReservations(startDate);
         DayReservationResponse response = calendarService.getDayCalendarReservations(startDate);
 
         if(response != null && response.getReservations() != null){
             for(SingleReservationDto reservation : response.getReservations()){
-                DateTime existingStart = new DateTime(reservation.getStart());
-                DateTime existingEnd = new DateTime(reservation.getEnd());
-                if(startDateTime.getValue() < existingEnd.getValue() && endDateTime.getValue() > existingStart.getValue()){
+//                DateTime existingStart = new DateTime(reservation.getStart());
+//                DateTime existingEnd = new DateTime(reservation.getEnd());
+                LocalDateTime existingStart = reservation.getStart();
+                LocalDateTime existingEnd = reservation.getEnd();
+
+                if (startDateTime.isBefore(existingEnd) && endDateTime.isAfter(existingStart)){
                     throw new CustomException("이미 예약된 일정이 있습니다.", CustomErrorCode.EVENT_OVERLAPS);
                 }
             }
@@ -114,24 +119,19 @@ public class ReservationValidService {
     public void checkDeleteTime(int reservId) throws CustomException {
         LocalDateTime currentDateTime = LocalDateTime.now();
         Reserv eventForCheckTime = reservRepository.findByReservId(reservId);
-        String eventTime = String.valueOf(eventForCheckTime.getStartTime()); //저장된 이벤트 시간 string
-        ZonedDateTime zonedDateTime = ZonedDateTime.parse(eventTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        LocalDateTime eventDateTime = zonedDateTime.toLocalDateTime(); //저장된 이벤트 시간 localdatetime
+        LocalDateTime eventTime = eventForCheckTime.getStartTime(); //저장된 이벤트 시간
 
-//        System.out.println("eventDateTime : " + eventDateTime);
-//        System.out.println("currentDateTime : " + currentDateTime);
+        LocalDateTime eventDateTimeAfter = eventTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
 
-        LocalDateTime eventDateTimeAfter = eventDateTime.plusMinutes(30); //저장된 이벤트 시간에 30분 plus
-
-//        System.out.println("eventDateTimeAfter : " + eventDateTimeAfter);
 
         if (currentDateTime.isAfter(eventDateTimeAfter)) { //현재 시각이 (저장된 이벤트 시작 시간 + 30분)의 이후라면 예약 불가
             throw new CustomException("이미 지난 예약은 삭제할 수 없습니다.", CustomErrorCode.UNABLE_TO_DELETE);
         }
     }
 
-    private boolean isDateInRange(String startTime, LocalDate startOfWeek, LocalDate endOfWeek) {
-        LocalDate reservationDate = LocalDate.parse(startTime.split("T")[0], DateTimeFormatter.ISO_DATE);
+    private boolean isDateInRange(LocalDateTime startTime, LocalDate startOfWeek, LocalDate endOfWeek) {
+//        LocalDate reservationDate = LocalDate.parse(startTime.split("T")[0], DateTimeFormatter.ISO_DATE);
+        LocalDate reservationDate = startTime.toLocalDate();
         return !reservationDate.isBefore(startOfWeek) && !reservationDate.isAfter(endOfWeek);
     }
 

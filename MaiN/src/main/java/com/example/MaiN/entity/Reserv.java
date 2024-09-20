@@ -1,7 +1,6 @@
 package com.example.MaiN.entity;
 
 import com.example.MaiN.dto.EventDto;
-import com.google.api.client.util.DateTime;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
@@ -29,10 +27,10 @@ public class Reserv {
     private String purpose;
 
     @Column(name = "start_time")
-    private OffsetDateTime startTime;
+    private LocalDateTime startTime;
 
     @Column(name = "end_time")
-    private OffsetDateTime endTime;
+    private LocalDateTime endTime;
 
     @Column(name = "event_id")
     private String eventId;
@@ -40,7 +38,7 @@ public class Reserv {
     @OneToMany(mappedBy = "reserv", cascade = CascadeType.REMOVE)
     private List<ReservAssign> reservAssigns = new ArrayList<>();
 
-    public Reserv(int id, int userId, String purpose, OffsetDateTime startTime, OffsetDateTime endTime, String eventId) {
+    public Reserv(int id, int userId, String purpose, LocalDateTime startTime, LocalDateTime endTime, String eventId) {
         this.id = id;
         this.userId = userId;
         this.purpose = purpose;
@@ -53,15 +51,15 @@ public class Reserv {
         this.id = eventDto.getId();
         this.userId = userId;
         this.purpose = eventDto.getPurpose();
-        this.startTime = OffsetDateTime.parse(eventDto.getStartDateTimeStr());
-        this.endTime = OffsetDateTime.parse(eventDto.getEndDateTimeStr());
+        this.startTime = eventDto.getStartDateTime();
+        this.endTime = eventDto.getEndDateTime();
         this.eventId = eventDto.getEventId();
     }
 
     public void updateReserv(EventDto eventDto){
         this.purpose = eventDto.getPurpose();
-        this.startTime = OffsetDateTime.parse(eventDto.getStartDateTimeStr());
-        this.endTime = OffsetDateTime.parse(eventDto.getEndDateTimeStr());
+        this.startTime = eventDto.getStartDateTime();
+        this.endTime = eventDto.getEndDateTime();
     }
 
 

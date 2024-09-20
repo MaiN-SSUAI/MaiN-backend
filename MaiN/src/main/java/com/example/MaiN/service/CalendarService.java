@@ -92,8 +92,8 @@ public class CalendarService {
                 .reservationId(reservId)
                 .studentNo(studentNoList)
                 .purpose(purpose)
-                .start(event.getStart().getDateTime().toString())
-                .end(event.getEnd().getDateTime().toString())
+                .start(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getStart().getDateTime().getValue()), ZoneId.systemDefault()))
+                .end(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getEnd().getDateTime().getValue()), ZoneId.systemDefault()))
                 .start_pixel(start_pixel)
                 .end_pixel(end_pixel)
                 .build();
@@ -101,12 +101,12 @@ public class CalendarService {
 
 
     // 캘린더에 예약 등록
-    public String addReservation(List studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public String addReservation(List studentIds, LocalDateTime startDateTimeStr, LocalDateTime endDateTimeStr) throws Exception {
         Calendar calendar = getCalendarService();
 
         //EventDateTime 객체 생성
-        DateTime startDateTime = new DateTime(startDateTimeStr);
-        DateTime endDateTime = new DateTime(endDateTimeStr);
+        DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+        DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
         EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
         EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
 
@@ -133,15 +133,15 @@ public class CalendarService {
         calendar.events().delete(CALENDAR_ID, eventId).execute();
     }
 
-    public DateTime updateReservation(String eventId, List studentIds, String startDateTimeStr, String endDateTimeStr) throws Exception {
+    public DateTime updateReservation(String eventId, List studentIds, LocalDateTime startDateTimeStr, LocalDateTime endDateTimeStr) throws Exception {
         //예약 수정 로직
         Calendar calendar = getCalendarService();
         Event event = calendar.events().get(CALENDAR_ID, eventId).execute();
         String summary = String.format("세미나실2/%s", studentIds);
 
         //EventDateTime 객체 생성
-        DateTime startDateTime = new DateTime(startDateTimeStr);
-        DateTime endDateTime = new DateTime(endDateTimeStr);
+        DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+        DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
         EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
         EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
 
