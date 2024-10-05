@@ -167,7 +167,6 @@ public class ReservationService {
         return "예약 수정 성공";
     }
 
-
     //앱 사용자가 아닌 경우 DB 에 저장
     @Transactional
     public int addUninformedUser(String studentId) {
@@ -179,41 +178,33 @@ public class ReservationService {
         return userRepository.save(user).getId();
     }
 
+    //User에게 푸쉬 알림을 보내는 메서드
     public void sendNotificationToUsers(List<String> userIds, PushMessage pushMessage, String... args) throws IOException {
         for (String userIdStr : userIds) {
-            // userIdStr이 user.id 값을 나타내는 경우 findById를 사용해야 함
-            Optional<String> fcmTokenOpt = userRepository.findById(userIdStr)
-                    .map(User::getFcmToken)
-                    .filter(token -> token != null && !token.isEmpty()); // FcmToken이 비어있지 않은지 체크
+            Optional<String> fcmTokenOpt = userRepository.findById(userIdStr).map(User::getFcmToken);
 
-            if (fcmTokenOpt.isPresent()) {
+            if (fcmTokenOpt.isPresent() && !fcmTokenOpt.get().isEmpty()) { //FCM 토큰이 존재하는 유저일 경우, 예약 알림 보냄.
                 String fcmToken = fcmTokenOpt.get();
-                log.info("Sending notification to userId: {}, FCM token: {}", userIdStr, fcmToken);
+                log.info("푸쉬 알림 - userId: {}, FCM token: {}", userIdStr, fcmToken);
                 firebaseCloudMessageService.sendMessageTo(fcmToken, pushMessage, args);
-            } else {
-                log.warn("No FCM token found for userId: {}. Skipping notification.", userIdStr);
+            } else { //FCM 토큰이 존재하지 않는 유저일 경우, 예약 알림을 보내지 않음.
+                log.warn("FCM 토큰을 찾을 수 없음 - userId: {}", userIdStr);
             }
         }
     }
 
-    // studentId를 통해 FCM 토큰을 가져오는 메서드
-    private String getUserFcmToken(String studentId) {
-        User user = userRepository.findByStudentNo(studentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 studentId를 가진 사용자를 찾을 수 없습니다: " + studentId));
-        return user.getFcmToken();
-    }
-
-    // 예약 시작 30분 전 예약을 찾는 메서드
     public List<Reserv> getReservationsStartingIn30Minutes() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime in30Minutes = now.plusMinutes(30);
-        return reservRepository.findReservationsBetween(now, in30Minutes);
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0); // 초와 나노초 제거
+        LocalDateTime exactTime = now.plusMinutes(30); // 30분 후 시간
+
+        return reservRepository.findReservationsStartingIn30Minutes(exactTime); // 30분 후에 해당하는 예약만 조회
     }
 
-    public List<Reserv> getReservationEndingIn5Minutes() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime in5Minutes = now.plusMinutes(5);
-        return reservRepository.findReservationsEndingIn5Minutes(now, in5Minutes);
+    public List<Reserv> getReservationsEndingIn5Minutes() {
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0); // 초와 나노초 제거
+        LocalDateTime exactTime = now.plusMinutes(5); // 5분 후 시간
+
+        return reservRepository.findReservationsEndingIn5Minutes(exactTime); // 5분 후에 해당하는 예약만 조회
     }
 }
 
