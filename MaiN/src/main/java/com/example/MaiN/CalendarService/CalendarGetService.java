@@ -9,10 +9,12 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
@@ -29,13 +31,19 @@ public class CalendarGetService {
     @Autowired
     private ReservRepository reservRepository;
 
-    public String calPixel(DateTime time) {
-        Instant instant = Instant.ofEpochMilli(time.getValue());
-        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
-        int hour = zonedDateTime.getHour();
-        int minute = zonedDateTime.getMinute();
-        int TotalDivTen = (60 * hour + minute) / 10;
-        int result = TotalDivTen * 6;
+    public String calPixel(LocalDateTime time) {
+//        Instant instant = Instant.ofEpochMilli(time.getValue());
+//        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
+//        int hour = zonedDateTime.getHour();
+//        int minute = zonedDateTime.getMinute();
+//        int TotalDivTen = (60 * hour + minute) / 10;
+//        int result = TotalDivTen * 6;
+//        return Integer.toString(result);
+
+        int hour = time.getHour();
+        int minute = time.getMinute();
+        int TotalDiven = (60 * hour + minute) / 10;
+        int result = TotalDiven * 6;
         return Integer.toString(result);
     }
 
@@ -47,19 +55,22 @@ public class CalendarGetService {
 
         map.put("purpose", purpose); // 예약 목적
 
-        DateTime startDateTime = event.getStart().getDateTime(); // 이벤트의 시작 날짜 및 시간
-        DateTime endDateTime = event.getEnd().getDateTime(); // 이벤트의 끝 날짜 및 시간
+        DateTime startDateTime = event.getStart().getDateTime();
+        DateTime endDateTime = event.getEnd().getDateTime();
 
-        map.put("start", event.getStart().getDateTime().toString());
-        map.put("end", event.getEnd().getDateTime().toString());
+        // DateTime이 null인 경우 날짜만 있는 all-day 이벤트로 간주하여 시간 설정
+        LocalDateTime startLocalDateTime = (startDateTime != null)
+                ? LocalDateTime.ofInstant(Instant.ofEpochMilli(startDateTime.getValue()), ZoneId.of("Asia/Seoul")) //기본 일정
+                : LocalDate.parse(event.getStart().getDate().toStringRfc3339()).atTime(0, 0); //all day event
 
-        // DateTime 객체를 Instant 객체로 변환
-        Instant startInstant = Instant.ofEpochMilli(startDateTime.getValue());
-        Instant endInstant = Instant.ofEpochMilli(endDateTime.getValue());
+        LocalDateTime endLocalDateTime = (endDateTime != null)
+                ? LocalDateTime.ofInstant(Instant.ofEpochMilli(endDateTime.getValue()), ZoneId.of("Asia/Seoul"))
+                : LocalDate.parse(event.getEnd().getDate().toStringRfc3339()).minusDays(1).atTime(23, 59);
 
-        // Instant 객체를 LocalDateTime 객체로 변환
-        LocalDateTime startLocalDateTime = LocalDateTime.ofInstant(startInstant, ZoneId.of("Asia/Seoul"));
-        LocalDateTime endLocalDateTime = LocalDateTime.ofInstant(endInstant, ZoneId.of("Asia/Seoul"));
+        // 포맷 설정 후 map에 추가
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+        map.put("start", startLocalDateTime.atOffset(ZoneOffset.ofHours(9)).format(formatter));
+        map.put("end", endLocalDateTime.atOffset(ZoneOffset.ofHours(9)).format(formatter));
 
         // LocalDateTime 객체에서 날짜 부분만 추출하여 LocalDate 객체로 변환
         LocalDate eventStartDate = startLocalDateTime.toLocalDate();
@@ -67,7 +78,7 @@ public class CalendarGetService {
 
         //입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
         if (date.isEqual(eventStartDate)) {
-            map.put("start_pixel", calPixel(event.getStart().getDateTime()));
+            map.put("start_pixel", calPixel(startLocalDateTime));
         }
         //입력한 날짜보다 시작 날짜가 빠른 경우 -> start_pixel = 0
         else if (date.isAfter(eventStartDate)) {
@@ -75,7 +86,7 @@ public class CalendarGetService {
         }
         //입력한 날짜와 이벤트 끝 날짜가 같은 경우 ->end pixel 그대로 계산
         if (date.isEqual(eventEndDate)) {
-            map.put("end_pixel", calPixel(event.getEnd().getDateTime()));
+            map.put("end_pixel", calPixel(endLocalDateTime));
         }
         //입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
         else if (date.isBefore(eventEndDate)) {
@@ -109,22 +120,38 @@ public class CalendarGetService {
 
         for (Event event : eventsList) {
             String summary = event.getSummary();
-            // 특정 문자열이 포함된 장소에 예약된 이벤트만 필터링
-            String[] parts = summary.split("/");
-            if (parts.length > 0 && parts[0].contains("2")) { //세미나실 2  event 라면
-                Reserv dbEvent = reservRepository.findByEventId(event.getId()); //event id 로 reserv 테이블에 저장된 예약 가져오기
-                int reservId = (dbEvent != null) ? dbEvent.getId() : 0;  //db 에 없으면 reservId = 0
 
-                Optional<Reserv> mainEvent = reservRepository.findById(reservId);
-                String purpose = mainEvent.map(Reserv::getPurpose).orElse(""); //purpose 추가
+            if (summary.replaceAll("\\s+", "").contains("세미나실2")) { //세미나실 2 관련 event 라면
 
-                // 이벤트를 맵으로 변환
-                Map<String, Object> eventMap = toMap(event, date, reservId, purpose);
-                String studentNo = parts[1].replace("[", "").replace("]", "").trim();
-                List<String> studentNoList = Arrays.asList(studentNo.split(", "));
-                eventMap.put("studentNo", studentNoList);
+                String pattern = "^세미나실2/.*$"; //학생들이 예약했을 때의 형식 ( "세미나실2/" 로 시작하는 패턴)
+                if (summary.matches(pattern)) { //학생들의 예약인 경우
 
-                allEventList.add(eventMap);
+                    String[] parts = summary.split("/");
+
+                    Reserv dbEvent = reservRepository.findByEventId(event.getId()); //event id 로 reserv 테이블에 저장된 예약 가져오기
+                    int reservId = (dbEvent != null) ? dbEvent.getId() : 0;  //db 에 없으면 reservId = 0
+
+                    Optional<Reserv> mainEvent = reservRepository.findById(reservId);
+                    String purpose = mainEvent.map(Reserv::getPurpose).orElse(""); //purpose 추가
+
+                    // 이벤트를 맵으로 변환
+                    Map<String, Object> eventMap = toMap(event, date, reservId, purpose);
+                    String studentNo = parts[1].replace("[", "").replace("]", "").trim();
+                    List<String> studentNoList = Arrays.asList(studentNo.split(", "));
+                    eventMap.put("studentNo", studentNoList);
+
+                    allEventList.add(eventMap);
+                }
+                // 제목이 "세미나실2/[학번]" 형식이 아닌 일정
+                else {
+                    int reservId = 0;
+                    String purpose = "";
+                    List<String> studentNoList = List.of(summary);
+
+                    Map<String, Object> eventMap = toMap(event, date, reservId, purpose);
+                    eventMap.put("studentNo", studentNoList);
+                    allEventList.add(eventMap);
+                }
             }
         }
         return ResponseEntity.ok(allEventList);
@@ -161,20 +188,36 @@ public class CalendarGetService {
 
                 for (Event event : eventsList) {
                     String summary = event.getSummary();
-                    String[] parts = summary.split("/");
-                    if (parts.length > 0 && parts[0].contains("2")) {
-                        Reserv dbEvent = reservRepository.findByEventId(event.getId());
-                        int reservId = (dbEvent != null) ? dbEvent.getId() : 0;
 
-                        Optional<Reserv> mainEvent = reservRepository.findById(reservId);
-                        String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
+                    if (summary.replaceAll("\\s+", "").contains("세미나실2")) { //세미나실 2 관련 event 라면
+                        String pattern = "^세미나실2/.*$"; //학생들이 예약했을 때의 형식 ( "세미나실2/" 로 시작하는 패턴)
+                        if(summary.matches(pattern)){
 
-                        Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId, purpose);
-                        String studentNo = parts[1].replace("[", "").replace("]", "").trim();
-                        List<String> studentNoList = Arrays.asList(studentNo.split(", "));
-                        eventMap.put("studentNo", studentNoList);
+                            String[] parts = summary.split("/");
 
-                        dayEventsList.add(eventMap);
+                            Reserv dbEvent = reservRepository.findByEventId(event.getId());
+                            int reservId = (dbEvent != null) ? dbEvent.getId() : 0;
+
+                            Optional<Reserv> mainEvent = reservRepository.findById(reservId);
+                            String purpose = mainEvent.map(Reserv::getPurpose).orElse("");
+
+                            Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId, purpose);
+                            String studentNo = parts[1].replace("[", "").replace("]", "").trim();
+                            List<String> studentNoList = Arrays.asList(studentNo.split(", "));
+                            eventMap.put("studentNo", studentNoList);
+
+                            dayEventsList.add(eventMap);
+                        }
+                        else{
+                            int reservId = 0;
+                            String purpose = "";
+                            Map<String, Object> eventMap = toMap(event, finalCurrentDate, reservId, purpose);
+                            List<String> studentNoList = List.of(summary);
+                            eventMap.put("studentNo", studentNoList);
+
+                            dayEventsList.add(eventMap);
+                        }
+
                     }
                 }
 
