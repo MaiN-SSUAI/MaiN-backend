@@ -105,11 +105,15 @@ public class CalendarService {
         Calendar calendar = getCalendarService();
 
         //EventDateTime 객체 생성
-        DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-//        EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
-//        EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
+        //DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+        //DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+        //EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
+        //EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
+        ZonedDateTime startDateTimeZoned = startDateTimeStr.atZone(ZoneId.of("Asia/Seoul"));
+        DateTime startDateTime = new DateTime(startDateTimeZoned.toInstant().toEpochMilli());
         EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime);
+        ZonedDateTime endDateTimeZoned = endDateTimeStr.atZone(ZoneId.of("Asia/Seoul"));
+        DateTime endDateTime = new DateTime(endDateTimeZoned.toInstant().toEpochMilli());
         EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime);
 
         // 일정 제목 설정 -> "세미나실2 / [20220000, 20221111]"
