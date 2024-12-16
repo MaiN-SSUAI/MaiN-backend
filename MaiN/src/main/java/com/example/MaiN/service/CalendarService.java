@@ -85,7 +85,7 @@ public class CalendarService {
         }
         // 입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
         else if (date.isBefore(eventEndDate)) {
-            end_pixel = "0";
+            end_pixel = "864";
         }
 
         return SingleReservationDto.builder()
