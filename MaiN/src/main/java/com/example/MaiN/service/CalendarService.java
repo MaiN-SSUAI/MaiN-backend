@@ -92,8 +92,8 @@ public class CalendarService {
                 .reservationId(reservId)
                 .studentNo(studentNoList)
                 .purpose(purpose)
-                .start(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getStart().getDateTime().getValue()), ZoneId.systemDefault()))
-                .end(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getEnd().getDateTime().getValue()), ZoneId.systemDefault()))
+                .start(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getStart().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
+                .end(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getEnd().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
                 .start_pixel(start_pixel)
                 .end_pixel(end_pixel)
                 .build();
