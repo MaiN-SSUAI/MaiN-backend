@@ -27,9 +27,7 @@ public class FunsysNotiCrawler implements Job {
         String baseUrl = "https://fun.ssu.ac.kr/ko/program/all/list/all/";
         int page = 1;
 
-        try (Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://database-1.cjgkeo6ugyuv.ap-northeast-2.rds.amazonaws.com:3306/main_db",
-                "admin", "wodudtnalsduswowlghks1228")) {
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)) {
             conn.setAutoCommit(false);
 
             while (true) {
