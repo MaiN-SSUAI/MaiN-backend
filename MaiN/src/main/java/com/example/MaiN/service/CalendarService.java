@@ -198,8 +198,11 @@ public class CalendarService {
         Calendar calendar = getCalendarService();
 
         // 입력받은 날짜를 이용해 그 날의 시작 시간과 끝 시간을 DateTime 형식으로 변환
-        DateTime startOfDay = new DateTime(date.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
-        DateTime endOfDay = new DateTime(date.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+        ZonedDateTime startDateTimeZoned = date.atStartOfDay(ZoneId.of("Asia/Seoul"));
+        DateTime startOfDay = new DateTime(startDateTimeZoned.toInstant().toEpochMilli());
+
+        ZonedDateTime endDateTimeZoned = date.atStartOfDay(ZoneId.of("Asia/Seoul"));
+        DateTime endOfDay = new DateTime(endDateTimeZoned.plusDays(1).toInstant().toEpochMilli());
 
         // 캘린더에서 날짜 범위에 해당하는 이벤트들 get
         Events events = calendar.events().list(CALENDAR_ID)
