@@ -46,13 +46,17 @@ public class CalendarService {
     }
 
     // 프론트 처리용 픽셀 계산
-    private static String calPixel(DateTime time) {
-        Instant instant = Instant.ofEpochMilli(time.getValue());
-        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
-        int hour = zonedDateTime.getHour();
-        int minute = zonedDateTime.getMinute();
-        int TotalDivTen = (60 * hour + minute) / 10;
-        int result = TotalDivTen * 6;
+    private static String calPixel(LocalDateTime time) {
+//        Instant instant = Instant.ofEpochMilli(time.getValue());
+//        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
+//        int hour = zonedDateTime.getHour();
+//        int minute = zonedDateTime.getMinute();
+//        int TotalDivTen = (60 * hour + minute) / 10;
+//        int result = TotalDivTen * 6;
+        int hour = time.getHour();
+        int minute = time.getMinute();
+        int TotalDiven = (60 * hour + minute) / 10;
+        int result = TotalDiven * 6;
         return Integer.toString(result);
     }
 
@@ -63,17 +67,34 @@ public class CalendarService {
 
         // DateTime 객체에서 LocalDate로 변환 (2024-09-03T10:15:00+09:00 -> 2024-09-03)
         // 이벤트 시작 날짜 -> YYYY-MM-DD
-        LocalDate eventStartDate = Instant.ofEpochMilli(event.getStart().getDateTime().getValue())
-                .atZone(ZoneId.of("Asia/Seoul"))
-                .toLocalDate();
-        // 이벤트 끝 날짜 -> YYYY-MM-DD
-        LocalDate eventEndDate = Instant.ofEpochMilli(event.getEnd().getDateTime().getValue())
-                .atZone(ZoneId.of("Asia/Seoul"))
-                .toLocalDate();
+
+        DateTime startDateTime = event.getStart().getDateTime();
+        DateTime endDateTime = event.getEnd().getDateTime();
+
+        // DateTime이 null인 경우 날짜만 있는 all-day 이벤트로 간주하여 시간 설정
+        LocalDateTime startLocalDateTime = (startDateTime != null)
+                ? LocalDateTime.ofInstant(Instant.ofEpochMilli(startDateTime.getValue()), ZoneId.of("Asia/Seoul")) //기본 일정
+                : LocalDate.parse(event.getStart().getDate().toStringRfc3339()).atTime(0, 0); //all day event
+
+        LocalDateTime endLocalDateTime = (endDateTime != null)
+                ? LocalDateTime.ofInstant(Instant.ofEpochMilli(endDateTime.getValue()), ZoneId.of("Asia/Seoul"))
+                : LocalDate.parse(event.getEnd().getDate().toStringRfc3339()).minusDays(1).atTime(23, 59);
+
+
+        LocalDate eventStartDate = startLocalDateTime.toLocalDate();
+        LocalDate eventEndDate = endLocalDateTime.toLocalDate();
+
+//        LocalDate eventStartDate = Instant.ofEpochMilli(event.getStart().getDateTime().getValue())
+//                .atZone(ZoneId.of("Asia/Seoul"))
+//                .toLocalDate();
+//        // 이벤트 끝 날짜 -> YYYY-MM-DD
+//        LocalDate eventEndDate = Instant.ofEpochMilli(event.getEnd().getDateTime().getValue())
+//                .atZone(ZoneId.of("Asia/Seoul"))
+//                .toLocalDate();
 
         // 입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
         if (date.isEqual(eventStartDate)) {
-            start_pixel = calPixel(event.getStart().getDateTime());
+            start_pixel = calPixel(startLocalDateTime);
         }
         // 입력한 날짜보다 시작 날짜가 빠른 경우 -> start_pixel = 0
         else if (date.isAfter(eventStartDate)) {
@@ -81,7 +102,7 @@ public class CalendarService {
         }
         // 입력한 날짜와 이벤트 끝 날짜가 같은 경우 -> end pixel 그대로 계산
         if (date.isEqual(eventEndDate)) {
-            end_pixel = calPixel(event.getEnd().getDateTime());
+            end_pixel = calPixel(endLocalDateTime);
         }
         // 입력한 날짜보다 이벤트 끝 날짜가 느린 경우 (입력 날짜에 이벤트가 끝나지 않은 경우) -> end pixel = 11:59 에 대하여 계산
         else if (date.isBefore(eventEndDate)) {
@@ -92,8 +113,10 @@ public class CalendarService {
                 .reservationId(reservId)
                 .studentNo(studentNoList)
                 .purpose(purpose)
-                .start(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getStart().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
-                .end(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getEnd().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
+//                .start(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getStart().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
+                .start(startLocalDateTime)
+                .end(endLocalDateTime)
+//                .end(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getEnd().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
                 .start_pixel(start_pixel)
                 .end_pixel(end_pixel)
                 .build();
@@ -176,22 +199,35 @@ public class CalendarService {
         List<SingleReservationDto> reservationDtos = new ArrayList<>();
 
         for (Event event : eventsList) {
-            String[] parts = event.getSummary().split("/");
+            String summary = event.getSummary();
 
-            //세미나실2만 필터링
-            if (parts.length > 1 && parts[0].contains("2")) {
-                //EventId를 통해 데이터베이스에 존재하는 이벤트를 필터링
-                Reserv dbEvent = reservRepository.findByEventId(event.getId());
+            //세미나실2 관련 이벤트라면
+            if (summary.replaceAll("\\s+", "").contains("세미나실2")) {
+                String pattern = "^세미나실2/.*$"; //학생들이 예약했을 때의 형식 ( "세미나실2/" 로 시작하는 패턴)
 
-                //데이터베이스에 존재하는 이벤트일 경우, getId() 아닐 경우, 0으로 세팅
-                int reservId = (dbEvent != null) ? dbEvent.getId() : 0;
-                //데이터베이스에 존재하는 이벤트일 경우, getPurpose() 아닐 경우, ""으로 세팅
-                String purpose = (dbEvent != null) ? dbEvent.getPurpose() : "";
+                if (summary.matches(pattern)) { //학생들의 예약인 경우
+                    String[] parts = summary.split("/");
+                    //EventId를 통해 데이터베이스에 존재하는 이벤트를 필터링
+                    Reserv dbEvent = reservRepository.findByEventId(event.getId());
 
-                //학번 하나씩 리스트로 저장
-                List<String> studentNoList = Arrays.asList(parts[1].replace("[", "").replace("]", "").trim().split(", "));
+                    //데이터베이스에 존재하는 이벤트일 경우, getId() 아닐 경우, 0으로 세팅
+                    int reservId = (dbEvent != null) ? dbEvent.getId() : 0;
+                    //데이터베이스에 존재하는 이벤트일 경우, getPurpose() 아닐 경우, ""으로 세팅
+                    String purpose = (dbEvent != null) ? dbEvent.getPurpose() : "";
 
-                reservationDtos.add(toDto(event,date,reservId,purpose,studentNoList));
+                    //학번 하나씩 리스트로 저장
+                    List<String> studentNoList = Arrays.asList(parts[1].replace("[", "").replace("]", "").trim().split(", "));
+
+                    reservationDtos.add(toDto(event,date,reservId,purpose,studentNoList));
+
+                }
+                else{ //형식이 다른 일정
+                    int reservId = 0;
+                    String purpose = "";
+                    List<String> studentNoList = List.of(summary);
+
+                    reservationDtos.add(toDto(event,date,reservId,purpose,studentNoList));
+                }
             }
         }
         return DayReservationResponse.builder()
