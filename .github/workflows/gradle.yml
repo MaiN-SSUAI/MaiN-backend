@@ -47,14 +47,12 @@ jobs:
     - name: Create env file
       env:
         DIR: src/main/resources
-        APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
-        APPLICATION_YML: ${{ secrets.APPLICATION_YML }}
+        APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_MAIN_PROPERTIES }}
         CREDENTIALS: ${{ secrets.CREDENTIALS }}
         RESERVE_CALENDAR: ${{ secrets.RESERVE_CALENDAR }}
       run: |
         mkdir -p $DIR
         echo $APPLICATION_PROPERTIES | base64 --decode > $DIR/application.properties
-        echo $APPLICATION_YML | base64 --decode > $DIR/application.yml
         echo $CREDENTIALS | base64 --decode > $DIR/credentials.json
         echo $RESERVE_CALENDAR | base64 --decode > $DIR/reservecalendar-410115-141fd088c697.json
       working-directory: ${{ env.working-directory }}
