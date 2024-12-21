@@ -26,13 +26,8 @@ public class SsucatchNotiCrawler implements Job {
         String baseUrl = "https://scatch.ssu.ac.kr/%EA%B3%B5%EC%A7%80%EC%82%AC%ED%95%AD/page/";
         int page = 1;
 
-        try (Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://database-1.cjgkeo6ugyuv.ap-northeast-2.rds.amazonaws.com:3306/main_db",
-                "admin", "wodudtnalsduswowlghks1228")) {
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)) {
             conn.setAutoCommit(false);
-
-//            int countBefore = getCount(conn, "ssucatch_noti");
-//            System.out.println("SSU Catch - 크롤링 전 데이터 개수: " + countBefore);
 
             while (true) {
                 String url = baseUrl + page;
