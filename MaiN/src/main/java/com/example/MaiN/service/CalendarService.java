@@ -146,10 +146,17 @@ public class CalendarService {
         String summary = String.format("세미나실2/%s", studentIds);
 
         //EventDateTime 객체 생성
-        DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
-        EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
+        ZonedDateTime startDateTimeZoned = startDateTimeStr.atZone(ZoneId.of("Asia/Seoul"));
+        DateTime startDateTime = new DateTime(startDateTimeZoned.toInstant().toEpochMilli());
+        EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime);
+        ZonedDateTime endDateTimeZoned = endDateTimeStr.atZone(ZoneId.of("Asia/Seoul"));
+        DateTime endDateTime = new DateTime(endDateTimeZoned.toInstant().toEpochMilli());
+        EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime);
+
+//        DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+//        DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+//        EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
+//        EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
 
         // 기존 일정에 업데이트
         event.setSummary(summary)
@@ -196,6 +203,7 @@ public class CalendarService {
     public DayReservationResponse getDayCalendarReservations(LocalDate date) throws Exception {
 
         Calendar calendar = getCalendarService();
+
 
         // 입력받은 날짜를 이용해 그 날의 시작 시간과 끝 시간을 DateTime 형식으로 변환
         ZonedDateTime startDateTimeZoned = date.atStartOfDay(ZoneId.of("Asia/Seoul"));
