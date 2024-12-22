@@ -52,7 +52,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'com.google.firebase:firebase-admin:6.8.1'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	implementation 'javax.annotation:javax.annotation-api:1.3.2'
 }
 
 tasks.named('test') {
