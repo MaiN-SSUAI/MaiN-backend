@@ -125,7 +125,7 @@ public class ReservationValidService {
 
 
         if (currentDateTime.isAfter(eventDateTimeAfter)) { //현재 시각이 (저장된 이벤트 시작 시간 + 30분)의 이후라면 예약 불가
-            throw new CustomException("이미 지난 예약은 삭제할 수 없습니다.", CustomErrorCode.UNABLE_TO_DELETE);
+            throw new CustomException("이미 지난 예약은 수정할 수 없습니다.", CustomErrorCode.UNABLE_TO_DELETE);
         }
     }
 
