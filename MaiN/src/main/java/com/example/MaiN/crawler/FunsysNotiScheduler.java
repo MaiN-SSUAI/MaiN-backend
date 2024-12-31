@@ -45,6 +45,7 @@ public class FunsysNotiScheduler {
             // 크롤링 작업을 수행할 Job을 정의
             JobDetail job = JobBuilder.newJob(com.example.MaiN.crawler.FunsysNotiCrawler.class)
                     .withIdentity("funsysNotiCrawlingJob", "group1")
+                    .usingJobData(jobDataMap)
                     .build();
 
             // 스케줄러에 Job과 Trigger 등록
