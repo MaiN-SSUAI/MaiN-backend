@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class SsucatchNotiCrawler implements Job {
 
@@ -29,8 +30,10 @@ public class SsucatchNotiCrawler implements Job {
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)) {
             conn.setAutoCommit(false);
 
+
             while (true) {
                 String url = baseUrl + page;
+
                 Document doc = Jsoup.connect(url).get();
                 Elements data = doc.select("div.row.no-gutters.align-items-center");
 
@@ -69,7 +72,7 @@ public class SsucatchNotiCrawler implements Job {
             System.out.println("SSU Catch - 크롤링 후 데이터 개수: " + countAfter);
 
             conn.commit();
-            System.out.println("SSU Catch - 크롤링이 완료되었습니다. 완료 시간: \" + new Date()");
+            System.out.println("SSU Catch - 크롤링이 완료되었습니다. 완료 시간: " + new Date());
         } catch (SQLException | IOException | ParseException e) {
             System.out.println("SSU Catch - 크롤링 중 오류 발생: " + e.getMessage());
         }

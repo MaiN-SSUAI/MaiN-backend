@@ -36,15 +36,16 @@ public class SsucatchNotiScheduler {
                             .repeatForever()) // 매일 24시간 주기로 반복
                     .build();
 
-            // 크롤링 작업을 수행할 Job을 정의
-            JobDetail job = JobBuilder.newJob(com.example.MaiN.crawler.SsucatchNotiCrawler.class)
-                    .withIdentity("ssucatchNotiCrawlingJob", "group1")
-                    .build();
-
             JobDataMap jobDataMap = new JobDataMap();
             jobDataMap.put("dbUrl", dbUrl);
             jobDataMap.put("dbUsername", dbUsername);
             jobDataMap.put("dbPassword", dbPassword);
+
+            // 크롤링 작업을 수행할 Job을 정의
+            JobDetail job = JobBuilder.newJob(com.example.MaiN.crawler.SsucatchNotiCrawler.class)
+                    .withIdentity("ssucatchNotiCrawlingJob", "group1")
+                    .usingJobData(jobDataMap)
+                    .build();
 
             // 스케줄러에 Job과 Trigger 등록
             scheduler.scheduleJob(job, trigger);
