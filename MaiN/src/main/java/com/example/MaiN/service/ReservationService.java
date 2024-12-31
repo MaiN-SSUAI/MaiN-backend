@@ -49,7 +49,7 @@ public class ReservationService {
     @Transactional
     public String addReservation(EventDto eventDto) throws Exception {
         // 예약 제한사항 체크 (2시간 이상, 30분 미만 금지, 2인 이상, 겹치는지 확인)
-        reservationValidService.checkReservation(eventDto.getStartDateTime(),eventDto.getEndDateTime(),eventDto.getStudentIds());
+        reservationValidService.checkReservation(null,eventDto.getStartDateTime(),eventDto.getEndDateTime(),eventDto.getStudentIds());
 
         List<String> studentIds = eventDto.getStudentIds();
 
@@ -115,7 +115,7 @@ public class ReservationService {
         }
 
         // 예약 유효성 검사
-        reservationValidService.checkReservation(eventDto.getStartDateTime(), eventDto.getEndDateTime(), eventDto.getStudentIds());
+        reservationValidService.checkReservation(reservId,eventDto.getStartDateTime(), eventDto.getEndDateTime(), eventDto.getStudentIds());
 
         // 사용 구성원 변경
         List<String> newStudentIds = eventDto.getStudentIds(); // 입력으로 받은 학번 리스트
