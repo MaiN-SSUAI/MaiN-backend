@@ -47,12 +47,6 @@ public class CalendarService {
 
     // 프론트 처리용 픽셀 계산
     private static String calPixel(LocalDateTime time) {
-//        Instant instant = Instant.ofEpochMilli(time.getValue());
-//        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
-//        int hour = zonedDateTime.getHour();
-//        int minute = zonedDateTime.getMinute();
-//        int TotalDivTen = (60 * hour + minute) / 10;
-//        int result = TotalDivTen * 6;
         int hour = time.getHour();
         int minute = time.getMinute();
         int TotalDiven = (60 * hour + minute) / 10;
@@ -64,9 +58,6 @@ public class CalendarService {
 
         String start_pixel = "";
         String end_pixel = "";
-
-        // DateTime 객체에서 LocalDate로 변환 (2024-09-03T10:15:00+09:00 -> 2024-09-03)
-        // 이벤트 시작 날짜 -> YYYY-MM-DD
 
         DateTime startDateTime = event.getStart().getDateTime();
         DateTime endDateTime = event.getEnd().getDateTime();
@@ -83,14 +74,6 @@ public class CalendarService {
 
         LocalDate eventStartDate = startLocalDateTime.toLocalDate();
         LocalDate eventEndDate = endLocalDateTime.toLocalDate();
-
-//        LocalDate eventStartDate = Instant.ofEpochMilli(event.getStart().getDateTime().getValue())
-//                .atZone(ZoneId.of("Asia/Seoul"))
-//                .toLocalDate();
-//        // 이벤트 끝 날짜 -> YYYY-MM-DD
-//        LocalDate eventEndDate = Instant.ofEpochMilli(event.getEnd().getDateTime().getValue())
-//                .atZone(ZoneId.of("Asia/Seoul"))
-//                .toLocalDate();
 
         // 입력한 날짜와 이벤트 시작 날짜가 같은 경우 -> startpixel 그대로 계산
         if (date.isEqual(eventStartDate)) {
@@ -113,10 +96,8 @@ public class CalendarService {
                 .reservationId(reservId)
                 .studentNo(studentNoList)
                 .purpose(purpose)
-//                .start(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getStart().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
                 .start(startLocalDateTime)
                 .end(endLocalDateTime)
-//                .end(LocalDateTime.ofInstant(Instant.ofEpochMilli(event.getEnd().getDateTime().getValue()), ZoneId.of("Asia/Seoul")))
                 .start_pixel(start_pixel)
                 .end_pixel(end_pixel)
                 .build();
@@ -127,11 +108,6 @@ public class CalendarService {
     public String addReservation(List studentIds, LocalDateTime startDateTimeStr, LocalDateTime endDateTimeStr) throws Exception {
         Calendar calendar = getCalendarService();
 
-        //EventDateTime 객체 생성
-        //DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        //DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        //EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
-        //EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
         ZonedDateTime startDateTimeZoned = startDateTimeStr.atZone(ZoneId.of("Asia/Seoul"));
         DateTime startDateTime = new DateTime(startDateTimeZoned.toInstant().toEpochMilli());
         EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime);
@@ -175,11 +151,6 @@ public class CalendarService {
         ZonedDateTime endDateTimeZoned = endDateTimeStr.atZone(ZoneId.of("Asia/Seoul"));
         DateTime endDateTime = new DateTime(endDateTimeZoned.toInstant().toEpochMilli());
         EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime);
-
-//        DateTime startDateTime = new DateTime(startDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-//        DateTime endDateTime = new DateTime(endDateTimeStr.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-//        EventDateTime startEventDateTime = new EventDateTime().setDateTime(startDateTime).setTimeZone("Asia/Seoul");
-//        EventDateTime endEventDateTime = new EventDateTime().setDateTime(endDateTime).setTimeZone("Asia/Seoul");
 
         // 기존 일정에 업데이트
         event.setSummary(summary)

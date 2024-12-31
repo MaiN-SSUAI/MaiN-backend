@@ -32,17 +32,13 @@ public class ReservationValidService {
     private final CalendarService calendarService;
 
     //예약 제한 사항 (예약 시간 관련) 체크
-    public void checkReservation(LocalDateTime startDateTime, LocalDateTime endDateTime, List<String> studentIds) throws Exception {
-//        DateTime startDateTime = new DateTime(startDateTimeStr);
-//        DateTime endDateTime = new DateTime(endDateTimeStr);
-
+    public void checkReservation(Integer reservId,LocalDateTime startDateTime, LocalDateTime endDateTime, List<String> studentIds) throws Exception {
         LocalDate startDate = startDateTime.toLocalDate();
-//        LocalDate startDate = LocalDate.parse(startDateTime.split("T")[0], DateTimeFormatter.ISO_DATE);
         // 에약 제한 사항들
         if (studentIds.size() < 2){
             throw new CustomException("최소 2인 이상 예약해야 합니다.", CustomErrorCode.RESERVATION_ONE_PERSON);
         }
-        checkReservationOverlaps(startDateTime, endDateTime, startDate);
+        checkReservationOverlaps(reservId,startDateTime, endDateTime, startDate);
         checkDuration(startDateTime, endDateTime);
     }
 
@@ -86,15 +82,17 @@ public class ReservationValidService {
     }
 
     //겹치는 예약 있는지 확인
-    public void checkReservationOverlaps(LocalDateTime startDateTime, LocalDateTime endDateTime, LocalDate startDate) throws Exception {
+    public void checkReservationOverlaps(Integer reservId,LocalDateTime startDateTime, LocalDateTime endDateTime, LocalDate startDate) throws Exception {
 
         //구글 캘린더에 저장되어 있는 예약 불러오기
         DayReservationResponse response = calendarService.getDayCalendarReservations(startDate);
 
         if(response != null && response.getReservations() != null){
             for(SingleReservationDto reservation : response.getReservations()){
-//                DateTime existingStart = new DateTime(reservation.getStart());
-//                DateTime existingEnd = new DateTime(reservation.getEnd());
+                // 수정인 경우: 현재 reserv ID와 비교
+                if (reservId != null && reservation.getReservationId() == reservId) {
+                    continue; // 수정 중인 예약은 검사 제외
+                }
                 LocalDateTime existingStart = reservation.getStart();
                 LocalDateTime existingEnd = reservation.getEnd();
 
