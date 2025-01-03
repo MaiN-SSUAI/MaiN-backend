@@ -19,12 +19,12 @@ public class VersionService {
     public VersionDto getIosVersion() {
         Version version = versionRepository.findById(1)
                 .orElseThrow(() -> new RuntimeException("Version not found!"));
-        return new VersionDto(version.getLatestIos(), version.getPresentIos());
+        return new VersionDto(version.getLatestIos(), version.getMinimumIos());
     }
 
     public VersionDto getAndroidVersion() {
         Version version = versionRepository.findById(1)
                 .orElseThrow(() -> new RuntimeException("Version not found!"));
-        return new VersionDto(version.getLatestAndroid(), version.getPresentAndroid());
+        return new VersionDto(version.getLatestAndroid(), version.getMinimumAndroid());
     }
 }

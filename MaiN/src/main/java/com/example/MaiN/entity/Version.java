@@ -18,12 +18,12 @@ public class Version {
     @Column(name = "latest_ios")
     private String latestIos;
 
-    @Column(name = "present_ios")
-    private String presentIos;
+    @Column(name = "minimum_ios")
+    private String minimumIos;
 
     @Column(name = "latest_android")
     private String latestAndroid;
 
-    @Column(name = "present_android")
-    private String presentAndroid;
+    @Column(name = "minimum_android")
+    private String minimumAndroid;
 }

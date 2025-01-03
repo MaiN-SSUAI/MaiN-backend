@@ -6,10 +6,10 @@ import lombok.Getter;
 public class VersionDto {
 
     private final String latest;
-    private final String present;
+    private final String minimum;
 
-    public VersionDto(String latest, String present) {
+    public VersionDto(String latest, String minimum) {
         this.latest = latest;
-        this.present = present;
+        this.minimum = minimum;
     }
 }
