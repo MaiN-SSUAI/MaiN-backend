@@ -41,7 +41,6 @@ public class SsucatchNotiScheduler {
             jobDataMap.put("dbUsername", dbUsername);
             jobDataMap.put("dbPassword", dbPassword);
 
-
             // 크롤링 작업을 수행할 Job을 정의
             JobDetail job = JobBuilder.newJob(com.example.MaiN.crawler.SsucatchNotiCrawler.class)
                     .withIdentity("ssucatchNotiCrawlingJob", "group1")
