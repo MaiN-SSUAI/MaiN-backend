@@ -1,13 +1,11 @@
 package com.example.MaiN.repository;
 
-//import com.example.MaiN.entity.Event;
-import com.example.MaiN.entity.EventAssign;
 import com.example.MaiN.entity.Reserv;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -19,4 +17,10 @@ public interface ReservRepository extends CrudRepository<Reserv, Integer> {
     Reserv findByReservId(@Param("id") int reservId);
 
     Reserv findByEventId(String eventId);
+
+    @Query("SELECT r FROM Reserv r WHERE r.startTime = :exactTime")
+    List<Reserv> findReservationsStartingIn30Minutes(@Param("exactTime") LocalDateTime exactTime);
+
+    @Query("SELECT r FROM Reserv r WHERE r.endTime = :exactTime")
+    List<Reserv> findReservationsEndingIn5Minutes(@Param("exactTime") LocalDateTime exactTime);
 }

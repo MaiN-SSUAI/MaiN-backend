@@ -35,7 +35,7 @@ public class SsucatchNotiScheduler {
                             .withIntervalInHours(24)
                             .repeatForever()) // 매일 24시간 주기로 반복
                     .build();
-
+            
             JobDataMap jobDataMap = new JobDataMap();
             jobDataMap.put("dbUrl", dbUrl);
             jobDataMap.put("dbUsername", dbUsername);

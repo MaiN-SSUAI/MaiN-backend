@@ -30,7 +30,7 @@ public class SsucatchNotiCrawler implements Job {
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)) {
             conn.setAutoCommit(false);
 
-
+          
             while (true) {
                 String url = baseUrl + page;
 

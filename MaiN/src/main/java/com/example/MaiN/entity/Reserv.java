@@ -1,18 +1,19 @@
 package com.example.MaiN.entity;
 
-import com.google.api.client.util.DateTime;
+import com.example.MaiN.dto.EventDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-import java.time.OffsetDateTime;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Entity
 @Setter
 @Getter
-@Builder
 @Table(name="reserv")
 public class Reserv {
     @Id
@@ -26,16 +27,18 @@ public class Reserv {
     private String purpose;
 
     @Column(name = "start_time")
-    private String startTime;
+    private LocalDateTime startTime;
 
     @Column(name = "end_time")
-    private String endTime;
+    private LocalDateTime endTime;
 
     @Column(name = "event_id")
     private String eventId;
 
+    @OneToMany(mappedBy = "reserv", cascade = CascadeType.REMOVE)
+    private List<ReservAssign> reservAssigns = new ArrayList<>();
 
-    public Reserv(int id, int userId, String purpose, String startTime, String endTime, String eventId) {
+    public Reserv(int id, int userId, String purpose, LocalDateTime startTime, LocalDateTime endTime, String eventId) {
         this.id = id;
         this.userId = userId;
         this.purpose = purpose;
@@ -44,17 +47,30 @@ public class Reserv {
         this.eventId = eventId;
     }
 
-    public void patch(Reserv event) {
-        if(event.purpose != null)
-            this.purpose = event.purpose;
-        if (event.startTime != null)
-            this.startTime = event.startTime;
-        if (event.endTime != null)
-            this.endTime = event.endTime;
-
+    public Reserv(EventDto eventDto, int userId){
+        this.id = eventDto.getId();
+        this.userId = userId;
+        this.purpose = eventDto.getPurpose();
+        this.startTime = eventDto.getStartDateTime();
+        this.endTime = eventDto.getEndDateTime();
+        this.eventId = eventDto.getEventId();
     }
+
+    public void updateReserv(EventDto eventDto){
+        this.purpose = eventDto.getPurpose();
+        this.startTime = eventDto.getStartDateTime();
+        this.endTime = eventDto.getEndDateTime();
+    }
+
 
     public String getEventId() {
         return eventId;
+    }
+
+    public List<String> getStudentIds() {
+        // ReservAssign 리스트에서 userId 필드를 추출하여 반환
+        return reservAssigns.stream()
+                .map(reservAssign -> String.valueOf(reservAssign.getUserId()))
+                .collect(Collectors.toList());
     }
 }
