@@ -166,7 +166,6 @@ public class CalendarService {
     // 세미나실 2 필터링, 대학원생 예약과 학부생 예약 처리, map으로 변환하는 예약 필터링 및 처리 메서드
     private static DayReservationResponse filterReservation(List<Event> eventsList, LocalDate date) {
 
-//        List<Map<String, Object>> eventMaps = new ArrayList<>();
         List<SingleReservationDto> reservationDtos = new ArrayList<>();
 
         for (Event event : eventsList) {
@@ -176,7 +175,7 @@ public class CalendarService {
             if (summary.replaceAll("\\s+", "").contains("세미나실2")) {
                 String pattern = "^세미나실2/.*$"; //학생들이 예약했을 때의 형식 ( "세미나실2/" 로 시작하는 패턴)
 
-                if (summary.matches(pattern)) { //학생들의 예약인 경우
+                if (summary.matches(pattern)) { //학부생 예약인 경우
                     String[] parts = summary.split("/");
                     //EventId를 통해 데이터베이스에 존재하는 이벤트를 필터링
                     Reserv dbEvent = reservRepository.findByEventId(event.getId());
@@ -266,7 +265,7 @@ public class CalendarService {
                 // 구글캘린더에서 가져온 이벤트들
                 List<Event> eventsList = events.getItems();
 
-                // 모든 이벤트를 dayRerervationResponse DTO 에 추가
+                // 모든 이벤트를 dayRerervationResponse 에 추가
                 DayReservationResponse dayReservationResponse = filterReservation(eventsList,finalCurrentDate);
 
                 String dayOfWeek = finalCurrentDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).substring(0, 3);
