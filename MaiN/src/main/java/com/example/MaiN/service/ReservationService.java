@@ -89,10 +89,16 @@ public class ReservationService {
     @Transactional
     public String deleteReservation(int reservId) throws Exception {
 
+        Reserv reserv = reservRepository.findByReservId(reservId);
+
+        if (reserv == null) {
+            throw new CustomException("삭제할 수 없는 예약입니다.", CustomErrorCode.NOT_EXIST_RESERVATION);
+        }
+
         //시작시간 30분 이후인지 확인
         reservationValidService.checkDeleteTime(reservId);
 
-        Reserv reserv = reservRepository.findByReservId(reservId);
+
         String eventId = reserv.getEventId();
 
         //구글 캘린더에서 삭제 메소드 호출하기
