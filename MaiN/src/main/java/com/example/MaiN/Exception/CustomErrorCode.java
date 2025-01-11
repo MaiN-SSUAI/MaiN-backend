@@ -29,7 +29,12 @@ public enum CustomErrorCode implements EnumModel {
 
     //Reservation
     RESERVATION_ONE_PERSON(400, "R001", "Impossible to make a reservation alone"),
-    NOT_EXIST_RESERVATION(400, "R002", "Not exist reservation");
+    NOT_EXIST_RESERVATION(400, "R002", "Not exist reservation"),
+    RESERVATION_NOT_FOUND(400, "R002", "삭제할 수 없는 예약입니다."),
+
+
+    
+    ;
 
     private int status;
     private String code;
