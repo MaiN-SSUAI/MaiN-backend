@@ -37,7 +37,7 @@ public class NotificationScheduler {
 
                 reservationService.sendNotificationToUsers(
                         reservation.getStudentIds(),
-                        PushMessage.MIN_LEFT, startTime, endTime);
+                        PushMessage.MIN_LEFT);
             } catch (IOException e) {
                 log.error("예약 알림 전송 실패", e);
             }
