@@ -6,16 +6,14 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum PushMessage {
-    // 예약 관련 메시지 템플릿
     TEST("푸쉬 알림 개발자 테스트입니다."),
 
-    MIN_LEFT("세미나실 예약이 %s에 시작됩니다. 예약 종료 시간은 %s입니다."),
+    MIN_LEFT("세미나실 예약 알림\n세미나실 이용 시작 시간이 30분 남았습니다."),
 
-    MIN_LEFT_ENDING("세미나실 사용 종료 5분 전입니다. 마무리와 뒷정리를 부탁드립니다.");
+    MIN_LEFT_ENDING("세미나실 예약 알림\n세미나실 이용 종료 시간이 5분 남았습니다. 깨끗한 정리 부탁드립니다.");
 
     private final String messageTemplate;
 
-    // 메시지 템플릿을 args로 포맷하는 메서드
     public String formatMessage(Object... args) {
         return String.format(this.messageTemplate, args);
     }
